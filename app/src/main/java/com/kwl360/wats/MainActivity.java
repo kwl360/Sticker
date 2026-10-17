@@ -140,7 +140,7 @@ public class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView intro = new TextView(this);
-        intro.setText("حوّل صورة أو GIF أو مقطعًا قصيرًا إلى ملصق متحرك، ثم أضف الحزمة إلى واتساب.");
+        intro.setText("١. أضف الصور أو استورد حزمة ZIP. ٢. راجع الملصقات. ٣. أضفها إلى واتساب.");
         intro.setTextColor(Color.rgb(71, 85, 105));
         intro.setTextSize(15);
         intro.setGravity(Gravity.CENTER);
@@ -192,7 +192,8 @@ public class MainActivity extends Activity {
         status.setTextColor(Color.rgb(30, 41, 59));
         status.setTextSize(14);
         status.setGravity(Gravity.CENTER);
-        status.setPadding(0, dp(14), 0, dp(12));
+        status.setPadding(dp(12), dp(12), dp(12), dp(12));
+        status.setBackgroundColor(Color.rgb(232, 240, 240));
         root.addView(status, matchWrap());
 
         TextView section = sectionTitle("محتوى الحزمة");
@@ -205,7 +206,7 @@ public class MainActivity extends Activity {
         root.addView(stickerGrid, gridParams);
 
         TextView note = new TextView(this);
-        note.setText("تحتاج الحزمة إلى 3 ملصقات على الأقل، وتقبل حتى 30. تُحفظ ملفاتك على الهاتف داخل التطبيق.");
+        note.setText("الحد من 3 إلى 30 ملصقًا. استيراد ZIP يقبل ملفات WebP حتى 500 كيلوبايت للملصق. تُحفظ الملفات على هذا الهاتف.");
         note.setTextColor(Color.rgb(100, 116, 139));
         note.setTextSize(12);
         note.setGravity(Gravity.CENTER);
@@ -236,9 +237,9 @@ public class MainActivity extends Activity {
         worker.execute(() -> {
             List<String> imported = new ArrayList<>();
             String error = null;
-            try (InputStream input = getContentResolver().openInputStream(uri);
-                 ZipInputStream zip = new ZipInputStream(input)) {
-                if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
+            InputStream input = getContentResolver().openInputStream(uri);
+            if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
+            try (ZipInputStream zip = new ZipInputStream(input)) {
                 int available = MAX_STICKERS - stickerNames().size();
                 if (available <= 0) throw new IOException("الحزمة ممتلئة؛ احذف ملصقًا أولًا.");
                 ZipEntry entry;
@@ -250,6 +251,7 @@ public class MainActivity extends Activity {
                     if (base.startsWith("tray") || base.startsWith("icon") || base.startsWith("cover")) continue;
                     if (imported.size() >= available) break;
                     File destination = nextStickerFile();
+                    imported.add(destination.getName());
                     try (FileOutputStream output = new FileOutputStream(destination)) {
                         byte[] buffer = new byte[8192];
                         int count;
@@ -262,12 +264,13 @@ public class MainActivity extends Activity {
                     }
                     if (destination.length() < 12) {
                         destination.delete();
+                        imported.remove(destination.getName());
                         continue;
                     }
                     addStickerName(destination.getName());
-                    imported.add(destination.getName());
                 }
                 if (imported.isEmpty()) throw new IOException("لم أجد صور WebP داخل ZIP. تأكد أن الملف يحتوي على ملصقات WebP.");
+            }
             } catch (Exception e) {
                 error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
                 for (String name : imported) {
