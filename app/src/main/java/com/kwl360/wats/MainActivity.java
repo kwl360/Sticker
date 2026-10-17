@@ -18,6 +18,8 @@ import android.graphics.Movie;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
+import android.view.WindowInsets;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 import android.view.Gravity;
@@ -78,6 +80,19 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(Color.rgb(15, 23, 42));
         ensurePackFiles();
         buildScreen();
+        if (Build.VERSION.SDK_INT >= 35) {
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+            getWindow().setNavigationBarColor(Color.TRANSPARENT);
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            View content = findViewById(android.R.id.content);
+            content.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                view.setPadding(0, bars.top, 0, bars.bottom);
+                return insets;
+            });
+            content.requestApplyInsets();
+        }
         loadFields();
         refreshStickers();
     }
