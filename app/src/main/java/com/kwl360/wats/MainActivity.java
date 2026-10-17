@@ -117,8 +117,8 @@ public class MainActivity extends Activity {
         scroll.setFillViewport(true);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(20), dp(18), dp(20), dp(24));
-        root.setBackgroundColor(Color.rgb(248, 250, 252));
+        root.setPadding(dp(16), dp(14), dp(16), dp(24));
+        root.setBackgroundColor(Color.rgb(241, 245, 249));
         root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         scroll.addView(root);
         setContentView(scroll);
@@ -126,67 +126,77 @@ public class MainActivity extends Activity {
         TextView brand = new TextView(this);
         brand.setText("KWL360  •  WATS");
         brand.setTextColor(Color.rgb(22, 102, 106));
-        brand.setTextSize(14);
+        brand.setTextSize(13);
+        brand.setTypeface(null, android.graphics.Typeface.BOLD);
         brand.setGravity(Gravity.CENTER);
+        brand.setPadding(0, dp(4), 0, dp(4));
         root.addView(brand, matchWrap());
 
         TextView title = new TextView(this);
-        title.setText("صانع الملصقات المتحركة");
+        title.setText("صانع ملصقات واتساب");
         title.setTextColor(Color.rgb(15, 23, 42));
-        title.setTextSize(25);
+        title.setTextSize(24);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, dp(8), 0, dp(4));
+        title.setPadding(0, dp(4), 0, dp(4));
         root.addView(title, matchWrap());
 
         TextView intro = new TextView(this);
-        intro.setText("١. أضف الصور أو استورد حزمة ZIP. ٢. راجع الملصقات. ٣. أضفها إلى واتساب.");
+        intro.setText("أضف صورك أو استورد ZIP، راجع الملصقات، ثم أرسل الحزمة إلى واتساب.");
         intro.setTextColor(Color.rgb(71, 85, 105));
-        intro.setTextSize(15);
+        intro.setTextSize(14);
         intro.setGravity(Gravity.CENTER);
-        intro.setPadding(dp(4), 0, dp(4), dp(16));
+        intro.setPadding(dp(6), 0, dp(6), dp(12));
         root.addView(intro, matchWrap());
 
+        LinearLayout details = sectionCard();
+        details.addView(sectionTitle("١. بيانات الحزمة"), matchWrap());
+        TextView nameLabel = fieldLabel("اسم الحزمة");
+        details.addView(nameLabel, matchWrap());
         packName = new EditText(this);
         packName.setSingleLine(true);
-        packName.setHint("اسم حزمة الملصقات");
+        packName.setHint("مثال: ملصقات حماد");
         packName.setTextSize(16);
-        root.addView(packName, matchWrap());
+        details.addView(packName, matchWrap());
 
+        TextView publisherLabel = fieldLabel("اسم الناشر");
+        LinearLayout.LayoutParams publisherLabelParams = matchWrap();
+        publisherLabelParams.topMargin = dp(8);
+        details.addView(publisherLabel, publisherLabelParams);
         publisher = new EditText(this);
         publisher.setSingleLine(true);
-        publisher.setHint("اسم الناشر");
+        publisher.setHint("مثال: KWL360");
         publisher.setTextSize(16);
-        root.addView(publisher, matchWrap());
+        details.addView(publisher, matchWrap());
+        root.addView(details, cardParams());
 
-        TextView createLabel = sectionTitle("إنشاء ملصقات");
-        root.addView(createLabel, matchWrap());
-
-        Button choose = makeButton("＋  اختر صورة أو GIF أو فيديو");
+        LinearLayout actions = sectionCard();
+        actions.addView(sectionTitle("٢. أضف ملصقات"), matchWrap());
+        Button choose = makeButton("اختر صورة أو GIF أو فيديو");
         choose.setOnClickListener(v -> chooseMedia());
         LinearLayout.LayoutParams chooseParams = matchWrap();
         chooseParams.topMargin = dp(8);
-        root.addView(choose, chooseParams);
+        actions.addView(choose, chooseParams);
 
         Button importZip = makeButton("استيراد حزمة ملصقات ZIP");
         importZip.setOnClickListener(v -> chooseZip());
         LinearLayout.LayoutParams zipParams = matchWrap();
         zipParams.topMargin = dp(8);
-        root.addView(importZip, zipParams);
+        actions.addView(importZip, zipParams);
 
         TextView zipHint = new TextView(this);
-        zipHint.setText("اختر ملف ZIP يحتوي على صور WebP. سيُضاف ما يصل إلى 30 ملصقًا.");
+        zipHint.setText("يجب أن يحتوي ZIP على صور WebP للملصقات. الحد الأقصى 30 ملصقًا، و500 كيلوبايت لكل ملصق.");
         zipHint.setTextColor(Color.rgb(71, 85, 105));
-        zipHint.setTextSize(13);
-        zipHint.setGravity(Gravity.CENTER);
-        zipHint.setPadding(0, dp(4), 0, dp(10));
-        root.addView(zipHint, matchWrap());
+        zipHint.setTextSize(12);
+        zipHint.setPadding(dp(2), dp(6), dp(2), 0);
+        actions.addView(zipHint, matchWrap());
 
         addButton = makeButton("أضف الحزمة إلى واتساب");
         addButton.setOnClickListener(v -> addPackToWhatsApp());
         LinearLayout.LayoutParams addParams = matchWrap();
-        addParams.topMargin = dp(8);
-        root.addView(addButton, addParams);
+        addParams.topMargin = dp(12);
+        actions.addView(addButton, addParams);
+        root.addView(actions, cardParams());
 
         status = new TextView(this);
         status.setTextColor(Color.rgb(30, 41, 59));
@@ -194,24 +204,49 @@ public class MainActivity extends Activity {
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(12), dp(12), dp(12), dp(12));
         status.setBackgroundColor(Color.rgb(232, 240, 240));
-        root.addView(status, matchWrap());
+        LinearLayout.LayoutParams statusParams = matchWrap();
+        statusParams.bottomMargin = dp(12);
+        root.addView(status, statusParams);
 
-        TextView section = sectionTitle("محتوى الحزمة");
-        root.addView(section, matchWrap());
-
+        LinearLayout contents = sectionCard();
+        contents.addView(sectionTitle("٣. راجع ملصقات الحزمة"), matchWrap());
         stickerGrid = new LinearLayout(this);
         stickerGrid.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams gridParams = matchWrap();
-        gridParams.topMargin = dp(8);
-        root.addView(stickerGrid, gridParams);
+        gridParams.topMargin = dp(6);
+        contents.addView(stickerGrid, gridParams);
 
         TextView note = new TextView(this);
-        note.setText("الحد من 3 إلى 30 ملصقًا. استيراد ZIP يقبل ملفات WebP حتى 500 كيلوبايت للملصق. تُحفظ الملفات على هذا الهاتف.");
+        note.setText("تحتاج الحزمة إلى 3 ملصقات على الأقل. تُحفظ ملفاتك على الهاتف داخل التطبيق.");
         note.setTextColor(Color.rgb(100, 116, 139));
         note.setTextSize(12);
         note.setGravity(Gravity.CENTER);
-        note.setPadding(0, dp(18), 0, 0);
-        root.addView(note, matchWrap());
+        note.setPadding(0, dp(12), 0, 0);
+        contents.addView(note, matchWrap());
+        root.addView(contents, cardParams());
+    }
+
+    private LinearLayout sectionCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(14), dp(10), dp(14), dp(14));
+        card.setBackgroundColor(Color.WHITE);
+        return card;
+    }
+
+    private LinearLayout.LayoutParams cardParams() {
+        LinearLayout.LayoutParams params = matchWrap();
+        params.bottomMargin = dp(10);
+        return params;
+    }
+
+    private TextView fieldLabel(String text) {
+        TextView label = new TextView(this);
+        label.setText(text);
+        label.setTextColor(Color.rgb(51, 65, 85));
+        label.setTextSize(13);
+        label.setTypeface(null, android.graphics.Typeface.BOLD);
+        return label;
     }
 
     private void chooseZip() {
