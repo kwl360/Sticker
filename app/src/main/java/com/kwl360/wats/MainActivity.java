@@ -237,9 +237,10 @@ public class MainActivity extends Activity {
         worker.execute(() -> {
             List<String> imported = new ArrayList<>();
             String error = null;
-            InputStream input = getContentResolver().openInputStream(uri);
-            if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
-            try (ZipInputStream zip = new ZipInputStream(input)) {
+            try {
+                InputStream input = getContentResolver().openInputStream(uri);
+                if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
+                try (ZipInputStream zip = new ZipInputStream(input)) {
                 int available = MAX_STICKERS - stickerNames().size();
                 if (available <= 0) throw new IOException("الحزمة ممتلئة؛ احذف ملصقًا أولًا.");
                 ZipEntry entry;
@@ -269,8 +270,8 @@ public class MainActivity extends Activity {
                     }
                     addStickerName(destination.getName());
                 }
-                if (imported.isEmpty()) throw new IOException("لم أجد صور WebP داخل ZIP. تأكد أن الملف يحتوي على ملصقات WebP.");
-            }
+                    if (imported.isEmpty()) throw new IOException("لم أجد صور WebP داخل ZIP. تأكد أن الملف يحتوي على ملصقات WebP.");
+                }
             } catch (Exception e) {
                 error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
                 for (String name : imported) {
