@@ -202,9 +202,10 @@ public class MainActivity extends Activity {
         if (requestCode != PICK_MEDIA || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         String mime = getContentResolver().getType(uri);
+        final String mediaMime = mime == null ? "" : mime;
         String displayName = queryDisplayName(uri);
-        if (mime == null) mime = "";
-        if (!(mime.startsWith("image/") || mime.startsWith("video/") || displayName.toLowerCase().endsWith(".gif"))) {
+        final String selectedName = displayName;
+        if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || selectedName.toLowerCase().endsWith(".gif"))) {
             status.setText("اختر صورة أو GIF أو فيديو.");
             return;
         }
@@ -219,7 +220,7 @@ public class MainActivity extends Activity {
             String error = null;
             try {
                 File out = nextStickerFile();
-                List<Bitmap> frames = decodeFrames(uri, mime, displayName);
+                List<Bitmap> frames = decodeFrames(uri, mediaMime, selectedName);
                 try {
                     encodeAnimatedWebp(frames, out);
                 } finally {
