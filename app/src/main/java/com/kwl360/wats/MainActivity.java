@@ -44,6 +44,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,6 +63,7 @@ public class MainActivity extends Activity {
     private static final String KEY_PACK_NAME = "pack_name";
     private static final String KEY_PUBLISHER = "publisher";
     private static final int PICK_MEDIA = 21;
+    private static final int PICK_ZIP = 23;
     private static final int CANVAS_SIZE = 512;
     private static final int MAX_STICKERS = 30;
     private static final long MAX_ANIMATED_BYTES = 500L * 1024L;
@@ -156,11 +159,28 @@ public class MainActivity extends Activity {
         publisher.setTextSize(16);
         root.addView(publisher, matchWrap());
 
+        TextView createLabel = sectionTitle("إنشاء ملصقات");
+        root.addView(createLabel, matchWrap());
+
         Button choose = makeButton("＋  اختر صورة أو GIF أو فيديو");
         choose.setOnClickListener(v -> chooseMedia());
         LinearLayout.LayoutParams chooseParams = matchWrap();
-        chooseParams.topMargin = dp(12);
+        chooseParams.topMargin = dp(8);
         root.addView(choose, chooseParams);
+
+        Button importZip = makeButton("استيراد حزمة ملصقات ZIP");
+        importZip.setOnClickListener(v -> chooseZip());
+        LinearLayout.LayoutParams zipParams = matchWrap();
+        zipParams.topMargin = dp(8);
+        root.addView(importZip, zipParams);
+
+        TextView zipHint = new TextView(this);
+        zipHint.setText("اختر ملف ZIP يحتوي على صور WebP. سيُضاف ما يصل إلى 30 ملصقًا.");
+        zipHint.setTextColor(Color.rgb(71, 85, 105));
+        zipHint.setTextSize(13);
+        zipHint.setGravity(Gravity.CENTER);
+        zipHint.setPadding(0, dp(4), 0, dp(10));
+        root.addView(zipHint, matchWrap());
 
         addButton = makeButton("أضف الحزمة إلى واتساب");
         addButton.setOnClickListener(v -> addPackToWhatsApp());
@@ -175,11 +195,7 @@ public class MainActivity extends Activity {
         status.setPadding(0, dp(14), 0, dp(12));
         root.addView(status, matchWrap());
 
-        TextView section = new TextView(this);
-        section.setText("ملصقات الحزمة");
-        section.setTextColor(Color.rgb(15, 23, 42));
-        section.setTextSize(18);
-        section.setTypeface(null, android.graphics.Typeface.BOLD);
+        TextView section = sectionTitle("محتوى الحزمة");
         root.addView(section, matchWrap());
 
         stickerGrid = new LinearLayout(this);
@@ -195,6 +211,82 @@ public class MainActivity extends Activity {
         note.setGravity(Gravity.CENTER);
         note.setPadding(0, dp(18), 0, 0);
         root.addView(note, matchWrap());
+    }
+
+    private void chooseZip() {
+        if (busy) return;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES,
+                new String[]{"application/zip", "application/x-zip-compressed", "application/octet-stream"});
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivityForResult(intent, PICK_ZIP);
+        } catch (Exception e) {
+            Toast.makeText(this, "تعذّر فتح ملفات الهاتف: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void importZip(Uri uri) {
+        if (busy) return;
+        busy = true;
+        status.setText("جارٍ فحص ملف ZIP واستيراد ملصقات WebP…");
+        addButton.setEnabled(false);
+        worker.execute(() -> {
+            List<String> imported = new ArrayList<>();
+            String error = null;
+            try (InputStream input = getContentResolver().openInputStream(uri);
+                 ZipInputStream zip = new ZipInputStream(input)) {
+                if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
+                int available = MAX_STICKERS - stickerNames().size();
+                if (available <= 0) throw new IOException("الحزمة ممتلئة؛ احذف ملصقًا أولًا.");
+                ZipEntry entry;
+                while ((entry = zip.getNextEntry()) != null) {
+                    if (entry.isDirectory()) continue;
+                    String lower = entry.getName().toLowerCase(java.util.Locale.ROOT);
+                    if (!lower.endsWith(".webp") || lower.contains("/__macosx/")) continue;
+                    String base = lower.substring(lower.lastIndexOf('/') + 1);
+                    if (base.startsWith("tray") || base.startsWith("icon") || base.startsWith("cover")) continue;
+                    if (imported.size() >= available) break;
+                    File destination = nextStickerFile();
+                    try (FileOutputStream output = new FileOutputStream(destination)) {
+                        byte[] buffer = new byte[8192];
+                        int count;
+                        long total = 0;
+                        while ((count = zip.read(buffer)) != -1) {
+                            total += count;
+                            if (total > MAX_ANIMATED_BYTES) throw new IOException("أحد الملصقات أكبر من 500 كيلوبايت.");
+                            output.write(buffer, 0, count);
+                        }
+                    }
+                    if (destination.length() < 12) {
+                        destination.delete();
+                        continue;
+                    }
+                    addStickerName(destination.getName());
+                    imported.add(destination.getName());
+                }
+                if (imported.isEmpty()) throw new IOException("لم أجد صور WebP داخل ZIP. تأكد أن الملف يحتوي على ملصقات WebP.");
+            } catch (Exception e) {
+                error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
+                for (String name : imported) {
+                    new File(folder(this), name).delete();
+                    removeStickerName(name);
+                }
+            }
+            final String message = error;
+            final int count = imported.size();
+            runOnUiThread(() -> {
+                busy = false;
+                if (message == null) {
+                    status.setText("تم استيراد " + count + " ملصقًا من ملف ZIP.");
+                } else {
+                    status.setText("تعذّر استيراد ZIP: " + message);
+                }
+                refreshStickers();
+            });
+        });
     }
 
     private void chooseMedia() {
@@ -214,8 +306,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != PICK_MEDIA || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
+        if (requestCode == PICK_ZIP) {
+            importZip(uri);
+            return;
+        }
+        if (requestCode != PICK_MEDIA) return;
         String mime = getContentResolver().getType(uri);
         final String mediaMime = mime == null ? "" : mime;
         String displayName = queryDisplayName(uri);
@@ -599,6 +696,16 @@ public class MainActivity extends Activity {
 
     private void setBusyMessage(String value) {
         runOnUiThread(() -> status.setText(value));
+    }
+
+    private TextView sectionTitle(String text) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(Color.rgb(15, 23, 42));
+        view.setTextSize(18);
+        view.setTypeface(null, android.graphics.Typeface.BOLD);
+        view.setPadding(0, dp(12), 0, dp(4));
+        return view;
     }
 
     private Button makeButton(String text) {
