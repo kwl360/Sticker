@@ -40,6 +40,7 @@ import com.aureusapps.android.webpandroid.encoder.WebPMuxAnimParams;
 import com.aureusapps.android.webpandroid.encoder.WebPPreset;
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class MainActivity extends Activity {
     static final String ID = "kwl_demo";
     private static final String PREFS = "kwl360_sticker_pack";
     private static final String KEY_STICKERS = "stickers";
+    private static final String KEY_ANIMATED = "animated_pack";
     private static final String KEY_PACK_NAME = "pack_name";
     private static final String KEY_PUBLISHER = "publisher";
     private static final int PICK_MEDIA = 21;
@@ -185,7 +187,7 @@ public class MainActivity extends Activity {
         actions.addView(importZip, zipParams);
 
         TextView zipHint = new TextView(this);
-        zipHint.setText("يجب أن يحتوي ZIP على صور WebP للملصقات. الحد الأقصى 30 ملصقًا، و500 كيلوبايت لكل ملصق.");
+        zipHint.setText("يجب أن يحتوي ZIP على 3–30 ملصق WebP من النوع نفسه، بأبعاد 512×512. الثابت حتى 100 كيلوبايت والمتحرك حتى 500 كيلوبايت.");
         zipHint.setTextColor(Color.rgb(71, 85, 105));
         zipHint.setTextSize(12);
         zipHint.setPadding(dp(2), dp(6), dp(2), 0);
@@ -272,47 +274,49 @@ public class MainActivity extends Activity {
         worker.execute(() -> {
             List<String> imported = new ArrayList<>();
             String error = null;
+            File packDir = folder(this);
+            File staging = new File(packDir, ".zip-import");
+            Boolean packAnimated = null;
             try {
+                if (staging.exists()) deleteTree(staging);
+                if (!staging.mkdirs()) throw new IOException("تعذّر تجهيز مساحة استيراد مؤقتة.");
                 InputStream input = getContentResolver().openInputStream(uri);
                 if (input == null) throw new IOException("تعذّرت قراءة ملف ZIP.");
                 try (ZipInputStream zip = new ZipInputStream(input)) {
-                int available = MAX_STICKERS - stickerNames().size();
-                if (available <= 0) throw new IOException("الحزمة ممتلئة؛ احذف ملصقًا أولًا.");
-                ZipEntry entry;
-                while ((entry = zip.getNextEntry()) != null) {
-                    if (entry.isDirectory()) continue;
-                    String lower = entry.getName().toLowerCase(java.util.Locale.ROOT);
-                    if (!lower.endsWith(".webp") || lower.contains("/__macosx/")) continue;
-                    String base = lower.substring(lower.lastIndexOf('/') + 1);
-                    if (base.startsWith("tray") || base.startsWith("icon") || base.startsWith("cover")) continue;
-                    if (imported.size() >= available) break;
-                    File destination = nextStickerFile();
-                    imported.add(destination.getName());
-                    try (FileOutputStream output = new FileOutputStream(destination)) {
+                    ZipEntry entry;
+                    while ((entry = zip.getNextEntry()) != null) {
+                        if (entry.isDirectory()) continue;
+                        String lower = entry.getName().toLowerCase(java.util.Locale.ROOT);
+                        if (!lower.endsWith(".webp") || lower.contains("/__macosx/")) continue;
+                        String base = lower.substring(lower.lastIndexOf('/') + 1);
+                        if (base.startsWith("tray") || base.startsWith("icon") || base.startsWith("cover")) continue;
+                        if (imported.size() >= MAX_STICKERS) throw new IOException("الملف يحتوي أكثر من 30 ملصقًا.");
+                        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                         byte[] buffer = new byte[8192];
                         int count;
-                        long total = 0;
                         while ((count = zip.read(buffer)) != -1) {
-                            total += count;
-                            if (total > MAX_ANIMATED_BYTES) throw new IOException("أحد الملصقات أكبر من 500 كيلوبايت.");
-                            output.write(buffer, 0, count);
+                            if (bytes.size() + count > MAX_ANIMATED_BYTES) throw new IOException("أحد الملصقات يتجاوز حد 500 كيلوبايت.");
+                            bytes.write(buffer, 0, count);
                         }
+                        byte[] sticker = bytes.toByteArray();
+                        boolean animated = validateStickerWebp(sticker);
+                        if (packAnimated != null && packAnimated != animated) throw new IOException("الحزمة لا تقبل خلط الملصقات الثابتة والمتحركة. استخدم ZIP من نوع واحد.");
+                        packAnimated = animated;
+                        String name = "sticker-" + (imported.size() + 1) + ".webp";
+                        try (FileOutputStream output = new FileOutputStream(new File(staging, name))) {
+                            output.write(sticker);
+                            output.getFD().sync();
+                        }
+                        imported.add(name);
                     }
-                    if (destination.length() < 12) {
-                        destination.delete();
-                        imported.remove(destination.getName());
-                        continue;
-                    }
-                    addStickerName(destination.getName());
                 }
-                    if (imported.isEmpty()) throw new IOException("لم أجد صور WebP داخل ZIP. تأكد أن الملف يحتوي على ملصقات WebP.");
-                }
+                if (imported.size() < 3) throw new IOException("تحتاج الحزمة إلى 3 ملصقات صالحة على الأقل.");
+                replaceStickerFiles(staging, imported);
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_ANIMATED, Boolean.TRUE.equals(packAnimated)).apply();
+                saveStickerNames(imported);
             } catch (Exception e) {
                 error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
-                for (String name : imported) {
-                    new File(folder(this), name).delete();
-                    removeStickerName(name);
-                }
+                if (staging.exists()) deleteTree(staging);
             }
             final String message = error;
             final int count = imported.size();
@@ -326,6 +330,71 @@ public class MainActivity extends Activity {
                 refreshStickers();
             });
         });
+    }
+
+    private static boolean validateStickerWebp(byte[] bytes) throws IOException {
+        if (bytes.length < 30 || bytes[0] != 'R' || bytes[1] != 'I' || bytes[2] != 'F' || bytes[3] != 'F'
+                || bytes[8] != 'W' || bytes[9] != 'E' || bytes[10] != 'B' || bytes[11] != 'P') {
+            throw new IOException("أحد الملفات ليس صورة WebP سليمة.");
+        }
+        boolean animated = isAnimatedWebp(bytes);
+        int maxBytes = animated ? 500 * 1024 : 100 * 1024;
+        if (bytes.length > maxBytes) throw new IOException(animated ? "الملصق المتحرك أكبر من 500 كيلوبايت." : "الملصق الثابت أكبر من 100 كيلوبايت.");
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+        if (options.outWidth != CANVAS_SIZE || options.outHeight != CANVAS_SIZE) throw new IOException("أبعاد كل ملصق يجب أن تكون 512×512.");
+        return animated;
+    }
+
+    private static boolean isAnimatedWebp(byte[] bytes) {
+        for (int offset = 12; offset + 8 <= bytes.length;) {
+            String tag = new String(bytes, offset, 4, java.nio.charset.StandardCharsets.US_ASCII);
+            long size = (bytes[offset + 4] & 255L) | ((bytes[offset + 5] & 255L) << 8)
+                    | ((bytes[offset + 6] & 255L) << 16) | ((bytes[offset + 7] & 255L) << 24);
+            if ("ANIM".equals(tag)) return true;
+            if ("VP8X".equals(tag) && offset + 8 < bytes.length && (bytes[offset + 8] & 2) != 0) return true;
+            if (size > bytes.length - offset - 8) break;
+            offset += 8 + (int) size + (int) (size & 1);
+        }
+        return false;
+    }
+
+    private static void deleteTree(File file) {
+        File[] children = file.listFiles();
+        if (children != null) for (File child : children) deleteTree(child);
+        file.delete();
+    }
+
+    private void replaceStickerFiles(File staging, List<String> newNames) throws IOException {
+        File packDir = folder(this);
+        File backup = new File(packDir, ".zip-backup");
+        if (backup.exists()) deleteTree(backup);
+        if (!backup.mkdirs()) throw new IOException("تعذّر حفظ نسخة الاستعادة المؤقتة.");
+        List<String> previous = new ArrayList<>();
+        List<String> installed = new ArrayList<>();
+        try {
+            File[] currentFiles = packDir.listFiles();
+            if (currentFiles != null) {
+                for (File file : currentFiles) {
+                    if (file.isFile() && file.getName().matches("sticker-[0-9]+\\.webp")) {
+                        if (!file.renameTo(new File(backup, file.getName()))) throw new IOException("تعذّر حفظ الملصقات الحالية مؤقتًا.");
+                        previous.add(file.getName());
+                    }
+                }
+            }
+            for (String name : newNames) {
+                if (!new File(staging, name).renameTo(new File(packDir, name))) throw new IOException("تعذّر تثبيت ملفات الملصقات المستوردة.");
+                installed.add(name);
+            }
+            deleteTree(backup);
+            deleteTree(staging);
+        } catch (IOException failure) {
+            for (String name : installed) new File(packDir, name).delete();
+            for (String name : previous) new File(backup, name).renameTo(new File(packDir, name));
+            deleteTree(backup);
+            throw failure;
+        }
     }
 
     private void chooseMedia() {
@@ -362,6 +431,10 @@ public class MainActivity extends Activity {
         }
         if (stickerNames().size() >= MAX_STICKERS) {
             status.setText("اكتملت الحزمة: الحد الأقصى 30 ملصقًا.");
+            return;
+        }
+        if (!stickerNames().isEmpty() && !getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
+            status.setText("هذه الحزمة ثابتة. احذف ملصقاتها أو استورد ZIP متحركًا قبل إضافة GIF أو فيديو.");
             return;
         }
         busy = true;
@@ -666,7 +739,11 @@ public class MainActivity extends Activity {
 
     private void saveStickerNames(List<String> names) {
         Set<String> sorted = new TreeSet<>(names);
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putStringSet(KEY_STICKERS, sorted).apply();
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putStringSet(KEY_STICKERS, sorted)
+                .putLong("image_data_version", getSharedPreferences(PREFS, MODE_PRIVATE).getLong("image_data_version", 0L) + 1L);
+        if (names.isEmpty()) editor.putBoolean(KEY_ANIMATED, true);
+        editor.apply();
         getContentResolver().notifyChange(Uri.parse("content://" + AUTH + "/metadata/" + ID), null);
     }
 
@@ -769,8 +846,8 @@ public class MainActivity extends Activity {
         private static final String[] META = {
                 "sticker_pack_identifier", "sticker_pack_name", "sticker_pack_publisher",
                 "sticker_pack_icon", "android_play_store_link", "ios_app_download_link",
-                "publisher_email", "publisher_website", "privacy_policy_website",
-                "license_agreement_website", "image_data_version", "avoid_cache",
+                "sticker_pack_publisher_email", "sticker_pack_publisher_website", "sticker_pack_privacy_policy_website",
+                "sticker_pack_license_agreement_website", "image_data_version", "whatsapp_will_not_cache_stickers",
                 "animated_sticker_pack"
         };
         private static final String[] STICKERS = {
@@ -780,7 +857,14 @@ public class MainActivity extends Activity {
         @Override public boolean onCreate() { return true; }
 
         @Override public String getType(Uri uri) {
-            return uri.toString().endsWith(".png") ? "image/png" : "image/webp";
+            List<String> path = uri.getPathSegments();
+            if (path.size() == 1 && "metadata".equals(path.get(0))) return "vnd.android.cursor.dir/vnd." + AUTH + ".metadata";
+            if (path.size() == 2 && "metadata".equals(path.get(0))) return "vnd.android.cursor.item/vnd." + AUTH + ".metadata";
+            if (path.size() == 2 && "stickers".equals(path.get(0))) return "vnd.android.cursor.dir/vnd." + AUTH + ".stickers";
+            if (path.size() == 3 && "stickers_asset".equals(path.get(0))) {
+                return path.get(2).endsWith(".png") ? "image/png" : "image/webp";
+            }
+            return null;
         }
 
         @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
@@ -792,8 +876,9 @@ public class MainActivity extends Activity {
                 String name = prefs.getString(KEY_PACK_NAME, "ملصقات حماد");
                 String author = prefs.getString(KEY_PUBLISHER, "KWL360");
                 String version = String.valueOf(prefs.getLong("image_data_version", 1L));
+                int animated = prefs.getBoolean(KEY_ANIMATED, true) ? 1 : 0;
                 cursor.addRow(new Object[]{ID, name, author, "tray.png", "", "", "",
-                        "https://kwl360.com", "", "", version, 0, 1});
+                        "https://kwl360.com", "", "", version, 0, animated});
                 return cursor;
             }
             if (path.size() == 2 && "stickers".equals(path.get(0)) && ID.equals(path.get(1))) {
