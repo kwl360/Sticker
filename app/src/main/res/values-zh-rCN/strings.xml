@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">WhatsApp 贴纸制作器</string>
+    <string name="intro">添加图片或导入 ZIP，检查贴纸后发送贴纸包到 WhatsApp。</string>
+    <string name="pack_data">1. 贴纸包信息</string><string name="pack_name">贴纸包名称</string>
+    <string name="pack_name_hint">例如：Hamad 贴纸</string><string name="publisher">作者</string>
+    <string name="publisher_hint">例如：KWL360</string><string name="imported_packs">2. 已导入的贴纸包</string>
+    <string name="packs_hint">导入的每个贴纸包都会保存在这里。选择贴纸包进行编辑或添加到 WhatsApp；导入新贴纸包不会删除旧包。</string>
+    <string name="add_stickers">3. 添加贴纸</string><string name="choose_media">选择图片、GIF 或视频</string>
+    <string name="import_zip">导入 ZIP 贴纸包</string>
+    <string name="zip_hint">ZIP 必须包含 3–30 张同类型 WebP 贴纸，尺寸为 512×512。静态贴纸不超过 100 KB，动态贴纸不超过 500 KB。</string>
+    <string name="add_to_whatsapp">添加贴纸包到 WhatsApp</string><string name="review_pack">4. 检查所选贴纸包</string>
+    <string name="minimum_note">贴纸包至少需要 3 张贴纸。文件保存在本手机的应用内。</string>
+    <string name="language">语言</string><string name="choose_language">选择语言</string>
+    <string name="auto_language">使用设备语言</string><string name="language_ar">阿拉伯语</string>
+    <string name="language_en">英语</string><string name="language_fr">法语</string><string name="language_es">西班牙语</string>
+    <string name="language_zh">简体中文</string><string name="language_id">印度尼西亚语</string><string name="language_hi">印地语</string><string name="cancel">取消</string>
+    <string name="pack_status">“%1$s”：%2$d/30 张贴纸。</string>
+    <string name="add_more">请再添加 %1$d 张贴纸</string>
+    <string name="add_selected">将所选贴纸包添加到 WhatsApp</string>
+    <string name="pack_stickers">%1$d 张贴纸</string>
+    <string name="animated">动态</string>
+    <string name="static">静态</string>
+    <string name="selected_now">已选中</string>
+    <string name="open_pack">已打开</string>
+    <string name="select_pack">选择</string>
+    <string name="empty_packs">还没有贴纸包。导入 ZIP 后会显示在这里。</string>
+    <string name="remove">删除</string>
+    <string name="keep_three">至少保留 3 张贴纸才能添加贴纸包。</string>
+    <string name="minimum_before_whatsapp">安装前请至少添加 3 张贴纸。</string>
+    <string name="whatsapp_normal">WhatsApp</string>
+    <string name="whatsapp_business">WhatsApp Business</string>
+    <string name="ask_target">要将“%1$s”添加到哪个应用？</string>
+    <string name="app_not_installed">此手机未安装 %1$s。</string>
+    <string name="importing_zip">正在检查 ZIP 并导入 WebP 贴纸…</string>
+    <string name="import_success">已将“%1$s”作为独立贴纸包导入，共 %2$d 张。</string>
+    <string name="import_failed">无法导入 ZIP：%1$s</string>
+    <string name="choose_media_status">请选择图片、GIF 或视频。</string>
+    <string name="pack_full">贴纸包已满：最多 30 张。</string>
+    <string name="convert_media">正在准备贴纸并转换为动态 WebP…</string>
+    <string name="convert_success">动态贴纸已创建并保存到贴纸包。</string>
+    <string name="import_invalid">导入失败。请确认 ZIP 包含 3–30 张有效的 512×512 同类型 WebP 贴纸。</string>
+    <string name="convert_failed">贴纸转换失败。请尝试较短的 GIF 或视频。</string>
+    <string name="files_open_failed">无法打开文件选择器。</string>
+    <string name="open_whatsapp_failed">无法打开所选的 WhatsApp 应用。</string>
+    <string name="static_pack_only">此贴纸包为静态。添加 GIF 或视频前请先导入动态 ZIP。</string>
+    <string name="default_pack_name">贴纸包</string>
+    <string name="sticker_access_animated">动态贴纸</string>
+    <string name="sticker_access_static">贴纸</string>
+</resources>

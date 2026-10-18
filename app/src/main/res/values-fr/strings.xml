@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">Créateur d’autocollants WhatsApp</string>
+    <string name="intro">Ajoutez des images ou importez un ZIP, vérifiez les autocollants, puis envoyez le pack sur WhatsApp.</string>
+    <string name="pack_data">1. Détails du pack</string><string name="pack_name">Nom du pack</string>
+    <string name="pack_name_hint">Exemple : autocollants Hamad</string><string name="publisher">Éditeur</string>
+    <string name="publisher_hint">Exemple : KWL360</string><string name="imported_packs">2. Vos packs importés</string>
+    <string name="packs_hint">Chaque pack importé est enregistré ici. Sélectionnez un pack pour le modifier ou l’ajouter à WhatsApp. L’import d’un autre pack ne supprime pas le précédent.</string>
+    <string name="add_stickers">3. Ajouter des autocollants</string><string name="choose_media">Choisir une image, un GIF ou une vidéo</string>
+    <string name="import_zip">Importer un pack ZIP</string>
+    <string name="zip_hint">Le ZIP doit contenir 3 à 30 autocollants WebP du même type, au format 512×512. Fixes : 100 Ko max ; animés : 500 Ko max.</string>
+    <string name="add_to_whatsapp">Ajouter le pack à WhatsApp</string><string name="review_pack">4. Vérifier les autocollants du pack</string>
+    <string name="minimum_note">Un pack nécessite au moins 3 autocollants. Vos fichiers sont enregistrés sur ce téléphone dans l’application.</string>
+    <string name="language">Langue</string><string name="choose_language">Choisir la langue</string>
+    <string name="auto_language">Langue de l’appareil</string><string name="language_ar">Arabe</string>
+    <string name="language_en">Anglais</string><string name="language_fr">Français</string><string name="language_es">Espagnol</string>
+    <string name="language_zh">Chinois simplifié</string><string name="language_id">Indonésien</string><string name="language_hi">Hindi</string><string name="cancel">Annuler</string>
+    <string name="pack_status">« %1$s » : %2$d autocollants sur 30.</string>
+    <string name="add_more">Ajoutez encore %1$d autocollants</string>
+    <string name="add_selected">Ajouter le pack sélectionné à WhatsApp</string>
+    <string name="pack_stickers">%1$d autocollants</string>
+    <string name="animated">Animés</string>
+    <string name="static">Fixes</string>
+    <string name="selected_now">Sélectionné</string>
+    <string name="open_pack">Ouvert</string>
+    <string name="select_pack">Choisir</string>
+    <string name="empty_packs">Aucun pack. Importez un fichier ZIP pour le voir ici.</string>
+    <string name="remove">Supprimer</string>
+    <string name="keep_three">Gardez au moins 3 autocollants pour ajouter le pack.</string>
+    <string name="minimum_before_whatsapp">Ajoutez au moins 3 autocollants avant l’installation.</string>
+    <string name="whatsapp_normal">WhatsApp</string>
+    <string name="whatsapp_business">WhatsApp Business</string>
+    <string name="ask_target">À quelle application ajouter « %1$s » ?</string>
+    <string name="app_not_installed">%1$s n’est pas installé sur ce téléphone.</string>
+    <string name="importing_zip">Vérification du ZIP et importation des autocollants WebP…</string>
+    <string name="import_success">« %1$s » importé dans un pack séparé de %2$d autocollants.</string>
+    <string name="import_failed">Échec de l’importation ZIP : %1$s</string>
+    <string name="choose_media_status">Choisissez une image, un GIF ou une vidéo.</string>
+    <string name="pack_full">Pack complet : 30 autocollants maximum.</string>
+    <string name="convert_media">Préparation et conversion en WebP animé…</string>
+    <string name="convert_success">Autocollant animé créé et enregistré.</string>
+    <string name="import_invalid">Échec de l’importation. Vérifiez que le ZIP contient 3 à 30 autocollants WebP valides, au format 512×512 et du même type.</string>
+    <string name="convert_failed">Conversion impossible. Essayez un GIF ou une vidéo plus courte.</string>
+    <string name="files_open_failed">Impossible d’ouvrir le sélecteur de fichiers.</string>
+    <string name="open_whatsapp_failed">Impossible d’ouvrir l’application WhatsApp choisie.</string>
+    <string name="static_pack_only">Ce pack est fixe. Importez un ZIP animé avant d’ajouter un GIF ou une vidéo.</string>
+    <string name="default_pack_name">Pack d’autocollants</string>
+    <string name="sticker_access_animated">Autocollant animé</string>
+    <string name="sticker_access_static">Autocollant</string>
+</resources>

@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">صانع ملصقات واتساب</string>
+    <string name="intro">أضف صورك أو استورد ZIP، راجع الملصقات، ثم أرسل الحزمة إلى واتساب.</string>
+    <string name="pack_data">١. بيانات الحزمة</string><string name="pack_name">اسم الحزمة</string>
+    <string name="pack_name_hint">مثال: ملصقات حماد</string><string name="publisher">اسم الناشر</string>
+    <string name="publisher_hint">مثال: KWL360</string><string name="imported_packs">٢. حزمك المستوردة</string>
+    <string name="packs_hint">كل حزمة تستوردها تُحفظ هنا. اختر أي حزمة للتعديل أو الإضافة إلى واتساب؛ استيراد حزمة جديدة لا يحذف القديمة.</string>
+    <string name="add_stickers">٣. أضف ملصقات</string><string name="choose_media">اختر صورة أو GIF أو فيديو</string>
+    <string name="import_zip">استيراد حزمة ملصقات ZIP</string>
+    <string name="zip_hint">يجب أن يحتوي ZIP على ٣–٣٠ ملصق WebP من النوع نفسه، بأبعاد 512×512. الثابت حتى 100 كيلوبايت والمتحرك حتى 500 كيلوبايت.</string>
+    <string name="add_to_whatsapp">أضف الحزمة إلى واتساب</string><string name="review_pack">٤. راجع ملصقات الحزمة المختارة</string>
+    <string name="minimum_note">تحتاج الحزمة إلى ٣ ملصقات على الأقل. تُحفظ ملفاتك على الهاتف داخل التطبيق.</string>
+    <string name="language">اللغة</string><string name="choose_language">اختر اللغة</string>
+    <string name="auto_language">لغة الجهاز</string><string name="language_ar">العربية</string>
+    <string name="language_en">الإنجليزية</string><string name="language_fr">الفرنسية</string>
+    <string name="language_es">الإسبانية</string><string name="language_zh">الصينية المبسطة</string>
+    <string name="language_id">الإندونيسية</string><string name="language_hi">الهندية</string><string name="cancel">إلغاء</string>
+    <string name="pack_status">«%1$s»: %2$d من 30 ملصقًا.</string>
+    <string name="add_more">أضف %1$d ملصقات أخرى أولًا</string>
+    <string name="add_selected">أضف الحزمة المختارة إلى واتساب</string>
+    <string name="pack_stickers">%1$d ملصقًا</string>
+    <string name="animated">متحركة</string>
+    <string name="static">ثابتة</string>
+    <string name="selected_now">محددة الآن</string>
+    <string name="open_pack">مفتوحة</string>
+    <string name="select_pack">اختيار</string>
+    <string name="empty_packs">لا توجد حزم بعد. استورد ملف ZIP لتظهر هنا.</string>
+    <string name="remove">حذف</string>
+    <string name="keep_three">احتفظ بثلاثة ملصقات على الأقل حتى تستطيع إضافة الحزمة.</string>
+    <string name="minimum_before_whatsapp">أضف ثلاثة ملصقات على الأقل قبل التثبيت.</string>
+    <string name="whatsapp_normal">واتساب العادي</string>
+    <string name="whatsapp_business">واتساب للأعمال</string>
+    <string name="ask_target">إلى أي تطبيق تريد إضافة «%1$s»؟</string>
+    <string name="app_not_installed">%1$s غير مثبت على الهاتف.</string>
+    <string name="importing_zip">جارٍ فحص ملف ZIP واستيراد ملصقات WebP…</string>
+    <string name="import_success">تم استيراد «%1$s» كحزمة مستقلة تضم %2$d ملصقًا.</string>
+    <string name="import_failed">تعذّر استيراد ZIP: %1$s</string>
+    <string name="choose_media_status">اختر صورة أو GIF أو فيديو.</string>
+    <string name="pack_full">اكتملت الحزمة: الحد الأقصى 30 ملصقًا.</string>
+    <string name="convert_media">جارٍ تجهيز الملصق وتحويله إلى WebP متحرك…</string>
+    <string name="convert_success">تم إنشاء الملصق المتحرك وحفظه في الحزمة.</string>
+    <string name="import_invalid">تعذّر الاستيراد. تأكد أن ZIP يحتوي على ٣–٣٠ ملصق WebP صالحًا، بأبعاد 512×512 ومن النوع نفسه.</string>
+    <string name="convert_failed">تعذّر تحويل الملصق. جرّب GIF أو فيديو أقصر.</string>
+    <string name="files_open_failed">تعذّر فتح مستعرض الملفات.</string>
+    <string name="open_whatsapp_failed">تعذّر فتح تطبيق واتساب المختار.</string>
+    <string name="static_pack_only">هذه الحزمة ثابتة. استورد ZIP متحركًا قبل إضافة GIF أو فيديو.</string>
+    <string name="default_pack_name">حزمة ملصقات</string>
+    <string name="sticker_access_animated">ملصق متحرك</string>
+    <string name="sticker_access_static">ملصق فلسطيني</string>
+</resources>

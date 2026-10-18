@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">Creador de stickers para WhatsApp</string>
+    <string name="intro">Añade imágenes o importa un ZIP, revisa los stickers y envía el paquete a WhatsApp.</string>
+    <string name="pack_data">1. Datos del paquete</string><string name="pack_name">Nombre del paquete</string>
+    <string name="pack_name_hint">Ejemplo: stickers de Hamad</string><string name="publisher">Autor</string>
+    <string name="publisher_hint">Ejemplo: KWL360</string><string name="imported_packs">2. Tus paquetes importados</string>
+    <string name="packs_hint">Cada paquete importado se guarda aquí. Selecciona cualquiera para editarlo o añadirlo a WhatsApp. Importar otro paquete no elimina el anterior.</string>
+    <string name="add_stickers">3. Añadir stickers</string><string name="choose_media">Elegir imagen, GIF o vídeo</string>
+    <string name="import_zip">Importar paquete ZIP</string>
+    <string name="zip_hint">El ZIP debe incluir de 3 a 30 stickers WebP del mismo tipo, de 512×512. Estáticos: hasta 100 KB; animados: hasta 500 KB.</string>
+    <string name="add_to_whatsapp">Añadir paquete a WhatsApp</string><string name="review_pack">4. Revisar los stickers del paquete</string>
+    <string name="minimum_note">El paquete necesita al menos 3 stickers. Los archivos se guardan en este teléfono dentro de la aplicación.</string>
+    <string name="language">Idioma</string><string name="choose_language">Elegir idioma</string>
+    <string name="auto_language">Idioma del dispositivo</string><string name="language_ar">Árabe</string>
+    <string name="language_en">Inglés</string><string name="language_fr">Francés</string><string name="language_es">Español</string>
+    <string name="language_zh">Chino simplificado</string><string name="language_id">Indonesio</string><string name="language_hi">Hindi</string><string name="cancel">Cancelar</string>
+    <string name="pack_status">«%1$s»: %2$d de 30 stickers.</string>
+    <string name="add_more">Añade %1$d stickers más primero</string>
+    <string name="add_selected">Añadir el paquete seleccionado a WhatsApp</string>
+    <string name="pack_stickers">%1$d stickers</string>
+    <string name="animated">Animados</string>
+    <string name="static">Estáticos</string>
+    <string name="selected_now">Seleccionado</string>
+    <string name="open_pack">Abierto</string>
+    <string name="select_pack">Elegir</string>
+    <string name="empty_packs">Aún no hay paquetes. Importa un ZIP para verlo aquí.</string>
+    <string name="remove">Eliminar</string>
+    <string name="keep_three">Conserva al menos 3 stickers para añadir el paquete.</string>
+    <string name="minimum_before_whatsapp">Añade al menos 3 stickers antes de instalar.</string>
+    <string name="whatsapp_normal">WhatsApp</string>
+    <string name="whatsapp_business">WhatsApp Business</string>
+    <string name="ask_target">¿A qué aplicación quieres añadir «%1$s»?</string>
+    <string name="app_not_installed">%1$s no está instalado en este teléfono.</string>
+    <string name="importing_zip">Comprobando ZIP e importando stickers WebP…</string>
+    <string name="import_success">«%1$s» se importó como paquete independiente con %2$d stickers.</string>
+    <string name="import_failed">No se pudo importar el ZIP: %1$s</string>
+    <string name="choose_media_status">Elige una imagen, GIF o vídeo.</string>
+    <string name="pack_full">Paquete completo: máximo 30 stickers.</string>
+    <string name="convert_media">Preparando sticker y convirtiéndolo a WebP animado…</string>
+    <string name="convert_success">Sticker animado creado y guardado en el paquete.</string>
+    <string name="import_invalid">No se pudo importar. Comprueba que el ZIP incluya de 3 a 30 stickers WebP válidos, de 512×512 y del mismo tipo.</string>
+    <string name="convert_failed">No se pudo convertir. Prueba con un GIF o vídeo más corto.</string>
+    <string name="files_open_failed">No se pudo abrir el selector de archivos.</string>
+    <string name="open_whatsapp_failed">No se pudo abrir la aplicación de WhatsApp elegida.</string>
+    <string name="static_pack_only">Este paquete es estático. Importa un ZIP animado antes de añadir un GIF o vídeo.</string>
+    <string name="default_pack_name">Paquete de stickers</string>
+    <string name="sticker_access_animated">Sticker animado</string>
+    <string name="sticker_access_static">Sticker</string>
+</resources>

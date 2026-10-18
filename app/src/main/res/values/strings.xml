@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string>
+    <string name="app_title">WhatsApp Sticker Maker</string>
+    <string name="intro">Add images or import a ZIP, review the stickers, then send the pack to WhatsApp.</string>
+    <string name="pack_data">1. Pack details</string><string name="pack_name">Pack name</string>
+    <string name="pack_name_hint">Example: Hamad stickers</string><string name="publisher">Publisher</string>
+    <string name="publisher_hint">Example: KWL360</string><string name="imported_packs">2. Your imported packs</string>
+    <string name="packs_hint">Every imported pack is saved here. Select any pack to edit or add it to WhatsApp; importing another pack will not remove the previous one.</string>
+    <string name="add_stickers">3. Add stickers</string><string name="choose_media">Choose an image, GIF, or video</string>
+    <string name="import_zip">Import a sticker ZIP pack</string>
+    <string name="zip_hint">ZIP must contain 3–30 WebP stickers of one type, sized 512×512. Static stickers: up to 100 KB; animated: up to 500 KB.</string>
+    <string name="add_to_whatsapp">Add pack to WhatsApp</string><string name="review_pack">4. Review selected pack stickers</string>
+    <string name="minimum_note">A pack needs at least 3 stickers. Your files are saved on this phone in the app.</string>
+    <string name="language">Language</string><string name="choose_language">Choose language</string>
+    <string name="auto_language">Use device language</string><string name="language_ar">العربية</string>
+    <string name="language_en">English</string><string name="language_fr">Français</string>
+    <string name="language_es">Español</string><string name="language_zh">简体中文</string>
+    <string name="language_id">Bahasa Indonesia</string><string name="language_hi">हिन्दी</string>
+    <string name="cancel">Cancel</string>
+    <string name="pack_status">“%1$s”: %2$d of 30 stickers.</string>
+    <string name="add_more">Add %1$d more stickers first</string>
+    <string name="add_selected">Add selected pack to WhatsApp</string>
+    <string name="pack_stickers">%1$d stickers</string>
+    <string name="animated">Animated</string>
+    <string name="static">Static</string>
+    <string name="selected_now">Selected</string>
+    <string name="open_pack">Open</string>
+    <string name="select_pack">Select</string>
+    <string name="empty_packs">No packs yet. Import a ZIP file to see it here.</string>
+    <string name="remove">Remove</string>
+    <string name="keep_three">Keep at least 3 stickers to add the pack.</string>
+    <string name="minimum_before_whatsapp">Add at least 3 stickers before installing.</string>
+    <string name="whatsapp_normal">WhatsApp</string>
+    <string name="whatsapp_business">WhatsApp Business</string>
+    <string name="ask_target">Which app should receive “%1$s”?</string>
+    <string name="app_not_installed">%1$s is not installed on this phone.</string>
+    <string name="importing_zip">Checking ZIP and importing WebP stickers…</string>
+    <string name="import_success">Imported “%1$s” as a separate pack with %2$d stickers.</string>
+    <string name="import_failed">Could not import ZIP: %1$s</string>
+    <string name="choose_media_status">Choose an image, GIF, or video.</string>
+    <string name="pack_full">Pack is full: maximum 30 stickers.</string>
+    <string name="convert_media">Preparing sticker and converting to animated WebP…</string>
+    <string name="convert_success">Animated sticker created and saved to the pack.</string>
+    <string name="import_invalid">Import failed. Check that the ZIP contains 3–30 valid 512×512 WebP stickers of one type.</string>
+    <string name="convert_failed">The sticker could not be converted. Try a shorter GIF or video.</string>
+    <string name="files_open_failed">Could not open the file picker.</string>
+    <string name="open_whatsapp_failed">Could not open the selected WhatsApp app.</string>
+    <string name="static_pack_only">This pack is static. Import an animated ZIP before adding a GIF or video.</string>
+    <string name="default_pack_name">Sticker pack</string>
+    <string name="sticker_access_animated">Animated sticker</string>
+    <string name="sticker_access_static">Sticker</string>
+</resources>

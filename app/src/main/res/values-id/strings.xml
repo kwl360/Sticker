@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">Pembuat Stiker WhatsApp</string>
+    <string name="intro">Tambahkan gambar atau impor ZIP, tinjau stikernya, lalu kirim paket ke WhatsApp.</string>
+    <string name="pack_data">1. Detail paket</string><string name="pack_name">Nama paket</string>
+    <string name="pack_name_hint">Contoh: stiker Hamad</string><string name="publisher">Pembuat</string>
+    <string name="publisher_hint">Contoh: KWL360</string><string name="imported_packs">2. Paket yang diimpor</string>
+    <string name="packs_hint">Setiap paket yang diimpor tersimpan di sini. Pilih paket untuk diedit atau ditambahkan ke WhatsApp. Mengimpor paket baru tidak menghapus paket lama.</string>
+    <string name="add_stickers">3. Tambahkan stiker</string><string name="choose_media">Pilih gambar, GIF, atau video</string>
+    <string name="import_zip">Impor paket stiker ZIP</string>
+    <string name="zip_hint">ZIP harus berisi 3–30 stiker WebP dengan jenis yang sama dan ukuran 512×512. Statis: maks. 100 KB; animasi: maks. 500 KB.</string>
+    <string name="add_to_whatsapp">Tambahkan paket ke WhatsApp</string><string name="review_pack">4. Tinjau stiker paket</string>
+    <string name="minimum_note">Paket memerlukan minimal 3 stiker. File disimpan di ponsel ini dalam aplikasi.</string>
+    <string name="language">Bahasa</string><string name="choose_language">Pilih bahasa</string>
+    <string name="auto_language">Bahasa perangkat</string><string name="language_ar">Arab</string>
+    <string name="language_en">Inggris</string><string name="language_fr">Prancis</string><string name="language_es">Spanyol</string>
+    <string name="language_zh">Mandarin sederhana</string><string name="language_id">Bahasa Indonesia</string><string name="language_hi">Hindi</string><string name="cancel">Batal</string>
+    <string name="pack_status">“%1$s”: %2$d dari 30 stiker.</string>
+    <string name="add_more">Tambahkan %1$d stiker lagi terlebih dahulu</string>
+    <string name="add_selected">Tambahkan paket terpilih ke WhatsApp</string>
+    <string name="pack_stickers">%1$d stiker</string>
+    <string name="animated">Animasi</string>
+    <string name="static">Statis</string>
+    <string name="selected_now">Dipilih</string>
+    <string name="open_pack">Terbuka</string>
+    <string name="select_pack">Pilih</string>
+    <string name="empty_packs">Belum ada paket. Impor file ZIP agar tampil di sini.</string>
+    <string name="remove">Hapus</string>
+    <string name="keep_three">Sisakan minimal 3 stiker untuk menambahkan paket.</string>
+    <string name="minimum_before_whatsapp">Tambahkan minimal 3 stiker sebelum memasang.</string>
+    <string name="whatsapp_normal">WhatsApp</string>
+    <string name="whatsapp_business">WhatsApp Business</string>
+    <string name="ask_target">Tambahkan “%1$s” ke aplikasi yang mana?</string>
+    <string name="app_not_installed">%1$s belum terpasang di ponsel ini.</string>
+    <string name="importing_zip">Memeriksa ZIP dan mengimpor stiker WebP…</string>
+    <string name="import_success">“%1$s” diimpor sebagai paket terpisah berisi %2$d stiker.</string>
+    <string name="import_failed">ZIP gagal diimpor: %1$s</string>
+    <string name="choose_media_status">Pilih gambar, GIF, atau video.</string>
+    <string name="pack_full">Paket penuh: maksimal 30 stiker.</string>
+    <string name="convert_media">Menyiapkan stiker dan mengonversinya ke WebP animasi…</string>
+    <string name="convert_success">Stiker animasi dibuat dan disimpan ke paket.</string>
+    <string name="import_invalid">Impor gagal. Pastikan ZIP berisi 3–30 stiker WebP valid berukuran 512×512 dengan jenis yang sama.</string>
+    <string name="convert_failed">Stiker tidak dapat dikonversi. Coba GIF atau video yang lebih singkat.</string>
+    <string name="files_open_failed">Pemilih file tidak dapat dibuka.</string>
+    <string name="open_whatsapp_failed">Aplikasi WhatsApp yang dipilih tidak dapat dibuka.</string>
+    <string name="static_pack_only">Paket ini statis. Impor ZIP animasi sebelum menambahkan GIF atau video.</string>
+    <string name="default_pack_name">Paket stiker</string>
+    <string name="sticker_access_animated">Stiker animasi</string>
+    <string name="sticker_access_static">Stiker</string>
+</resources>

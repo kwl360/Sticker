@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
@@ -53,15 +54,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    static final String AUTH = "com.kwl360.wats.library.icon.stickercontentprovider";
+    static final String AUTH = "com.kwl360.wats.library.lang.stickercontentprovider";
     static final String ID = "kwl_demo";
     private static final String PREFS = "kwl360_sticker_packs";
+    private static final String KEY_LANGUAGE = "ui_language";
     private static final String KEY_PACK_IDS = "pack_ids";
     private static final String KEY_SELECTED_PACK = "selected_pack";
     private static final String KEY_STICKERS = "stickers";
@@ -83,6 +86,28 @@ public class MainActivity extends Activity {
     private Button addButton;
     private boolean busy;
     private String currentPackId = ID;
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        String language = base.getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_LANGUAGE, "");
+        if (language.isEmpty()) language = supportedLanguage(Locale.getDefault().getLanguage());
+        Locale locale = Locale.forLanguageTag(language);
+        Locale.setDefault(locale);
+        android.content.res.Configuration config = new android.content.res.Configuration(base.getResources().getConfiguration());
+        config.setLocale(locale);
+        super.attachBaseContext(base.createConfigurationContext(config));
+    }
+
+    private static String supportedLanguage(String code) {
+        if ("in".equals(code)) code = "id";
+        return ("ar en fr es zh id hi".contains(code) && code.length() == 2) ? code : "en";
+    }
+
+    private String s(int id) { return getString(id); }
+
+    private boolean isRtlLanguage() {
+        return "ar".equals(getResources().getConfiguration().getLocales().get(0).getLanguage());
+    }
 
     @Override
     public void onCreate(Bundle state) {
@@ -129,10 +154,13 @@ public class MainActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(16), dp(14), dp(16), dp(24));
         root.setBackgroundColor(Color.rgb(241, 245, 249));
-        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        root.setLayoutDirection(isRtlLanguage() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         scroll.addView(root);
         setContentView(scroll);
 
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setOrientation(LinearLayout.HORIZONTAL);
         TextView brand = new TextView(this);
         brand.setText("KWL360  •  WATS");
         brand.setTextColor(Color.rgb(22, 102, 106));
@@ -140,10 +168,16 @@ public class MainActivity extends Activity {
         brand.setTypeface(null, android.graphics.Typeface.BOLD);
         brand.setGravity(Gravity.CENTER);
         brand.setPadding(0, dp(4), 0, dp(4));
-        root.addView(brand, matchWrap());
+        header.addView(brand, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Button language = makeButton("🌐");
+        language.setContentDescription(s(R.string.language));
+        language.setMinWidth(dp(48));
+        language.setOnClickListener(v -> showLanguagePicker());
+        header.addView(language, new LinearLayout.LayoutParams(dp(52), dp(42)));
+        root.addView(header, matchWrap());
 
         TextView title = new TextView(this);
-        title.setText("صانع ملصقات واتساب");
+        title.setText(s(R.string.app_title));
         title.setTextColor(Color.rgb(15, 23, 42));
         title.setTextSize(24);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -152,7 +186,7 @@ public class MainActivity extends Activity {
         root.addView(title, matchWrap());
 
         TextView intro = new TextView(this);
-        intro.setText("أضف صورك أو استورد ZIP، راجع الملصقات، ثم أرسل الحزمة إلى واتساب.");
+        intro.setText(s(R.string.intro));
         intro.setTextColor(Color.rgb(71, 85, 105));
         intro.setTextSize(14);
         intro.setGravity(Gravity.CENTER);
@@ -160,30 +194,30 @@ public class MainActivity extends Activity {
         root.addView(intro, matchWrap());
 
         LinearLayout details = sectionCard();
-        details.addView(sectionTitle("١. بيانات الحزمة"), matchWrap());
-        TextView nameLabel = fieldLabel("اسم الحزمة");
+        details.addView(sectionTitle(s(R.string.pack_data)), matchWrap());
+        TextView nameLabel = fieldLabel(s(R.string.pack_name));
         details.addView(nameLabel, matchWrap());
         packName = new EditText(this);
         packName.setSingleLine(true);
-        packName.setHint("مثال: ملصقات حماد");
+        packName.setHint(s(R.string.pack_name_hint));
         packName.setTextSize(16);
         details.addView(packName, matchWrap());
 
-        TextView publisherLabel = fieldLabel("اسم الناشر");
+        TextView publisherLabel = fieldLabel(s(R.string.publisher));
         LinearLayout.LayoutParams publisherLabelParams = matchWrap();
         publisherLabelParams.topMargin = dp(8);
         details.addView(publisherLabel, publisherLabelParams);
         publisher = new EditText(this);
         publisher.setSingleLine(true);
-        publisher.setHint("مثال: KWL360");
+        publisher.setHint(s(R.string.publisher_hint));
         publisher.setTextSize(16);
         details.addView(publisher, matchWrap());
         root.addView(details, cardParams());
 
         LinearLayout packs = sectionCard();
-        packs.addView(sectionTitle("٢. حزمك المستوردة"), matchWrap());
+        packs.addView(sectionTitle(s(R.string.imported_packs)), matchWrap());
         TextView packsHint = new TextView(this);
-        packsHint.setText("كل حزمة تستوردها تُحفظ هنا. اختر أي حزمة للتعديل أو الإضافة إلى واتساب؛ اختيار حزمة جديدة لا يحذف القديمة.");
+        packsHint.setText(s(R.string.packs_hint));
         packsHint.setTextColor(Color.rgb(71, 85, 105));
         packsHint.setTextSize(13);
         packs.addView(packsHint, matchWrap());
@@ -195,27 +229,27 @@ public class MainActivity extends Activity {
         root.addView(packs, cardParams());
 
         LinearLayout actions = sectionCard();
-        actions.addView(sectionTitle("٣. أضف ملصقات"), matchWrap());
-        Button choose = makeButton("اختر صورة أو GIF أو فيديو");
+        actions.addView(sectionTitle(s(R.string.add_stickers)), matchWrap());
+        Button choose = makeButton(s(R.string.choose_media));
         choose.setOnClickListener(v -> chooseMedia());
         LinearLayout.LayoutParams chooseParams = matchWrap();
         chooseParams.topMargin = dp(8);
         actions.addView(choose, chooseParams);
 
-        Button importZip = makeButton("استيراد حزمة ملصقات ZIP");
+        Button importZip = makeButton(s(R.string.import_zip));
         importZip.setOnClickListener(v -> chooseZip());
         LinearLayout.LayoutParams zipParams = matchWrap();
         zipParams.topMargin = dp(8);
         actions.addView(importZip, zipParams);
 
         TextView zipHint = new TextView(this);
-        zipHint.setText("يجب أن يحتوي ZIP على 3–30 ملصق WebP من النوع نفسه، بأبعاد 512×512. الثابت حتى 100 كيلوبايت والمتحرك حتى 500 كيلوبايت.");
+        zipHint.setText(s(R.string.zip_hint));
         zipHint.setTextColor(Color.rgb(71, 85, 105));
         zipHint.setTextSize(12);
         zipHint.setPadding(dp(2), dp(6), dp(2), 0);
         actions.addView(zipHint, matchWrap());
 
-        addButton = makeButton("أضف الحزمة إلى واتساب");
+        addButton = makeButton(s(R.string.add_to_whatsapp));
         addButton.setOnClickListener(v -> addPackToWhatsApp());
         LinearLayout.LayoutParams addParams = matchWrap();
         addParams.topMargin = dp(12);
@@ -233,7 +267,7 @@ public class MainActivity extends Activity {
         root.addView(status, statusParams);
 
         LinearLayout contents = sectionCard();
-        contents.addView(sectionTitle("٤. راجع ملصقات الحزمة المختارة"), matchWrap());
+        contents.addView(sectionTitle(s(R.string.review_pack)), matchWrap());
         stickerGrid = new LinearLayout(this);
         stickerGrid.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams gridParams = matchWrap();
@@ -241,13 +275,27 @@ public class MainActivity extends Activity {
         contents.addView(stickerGrid, gridParams);
 
         TextView note = new TextView(this);
-        note.setText("تحتاج الحزمة إلى 3 ملصقات على الأقل. تُحفظ ملفاتك على الهاتف داخل التطبيق.");
+        note.setText(s(R.string.minimum_note));
         note.setTextColor(Color.rgb(100, 116, 139));
         note.setTextSize(12);
         note.setGravity(Gravity.CENTER);
         note.setPadding(0, dp(12), 0, 0);
         contents.addView(note, matchWrap());
         root.addView(contents, cardParams());
+    }
+
+    private void showLanguagePicker() {
+        saveFields();
+        final String[] tags = {"", "ar", "en", "fr", "es", "zh", "id", "hi"};
+        final int[] labels = {R.string.auto_language, R.string.language_ar, R.string.language_en,
+                R.string.language_fr, R.string.language_es, R.string.language_zh,
+                R.string.language_id, R.string.language_hi};
+        CharSequence[] choices = new CharSequence[labels.length];
+        for (int i = 0; i < labels.length; i++) choices[i] = s(labels[i]);
+        new AlertDialog.Builder(this).setTitle(s(R.string.choose_language)).setItems(choices, (dialog, which) -> {
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_LANGUAGE, tags[which]).apply();
+            recreate();
+        }).setNegativeButton(s(R.string.cancel), null).show();
     }
 
     private LinearLayout sectionCard() {
@@ -284,14 +332,14 @@ public class MainActivity extends Activity {
         try {
             startActivityForResult(intent, PICK_ZIP);
         } catch (Exception e) {
-            Toast.makeText(this, "تعذّر فتح ملفات الهاتف: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, s(R.string.files_open_failed), Toast.LENGTH_LONG).show();
         }
     }
 
     private void importZip(Uri uri) {
         if (busy) return;
         busy = true;
-        status.setText("جارٍ فحص ملف ZIP واستيراد ملصقات WebP…");
+        status.setText(s(R.string.importing_zip));
         addButton.setEnabled(false);
         final String importedPackId = "kwl_" + System.currentTimeMillis();
         String archiveName = queryDisplayName(uri);
@@ -365,9 +413,9 @@ public class MainActivity extends Activity {
                     currentPackId = importedPackId;
                     getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_SELECTED_PACK, currentPackId).apply();
                     loadFields();
-                    status.setText("تم استيراد «" + importedPackName + "» كحزمة مستقلة تضم " + count + " ملصقًا.");
+                    status.setText(getString(R.string.import_success, importedPackName, count));
                 } else {
-                    status.setText("تعذّر استيراد ZIP: " + message);
+                    status.setText(isRtlLanguage() ? getString(R.string.import_failed, message) : s(R.string.import_invalid));
                 }
                 refreshPacks();
                 refreshStickers();
@@ -428,7 +476,7 @@ public class MainActivity extends Activity {
         try {
             startActivityForResult(intent, PICK_MEDIA);
         } catch (Exception e) {
-            Toast.makeText(this, "تعذّر فتح ملفات الهاتف: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, s(R.string.files_open_failed), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -447,19 +495,19 @@ public class MainActivity extends Activity {
         String displayName = queryDisplayName(uri);
         final String selectedName = displayName;
         if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || selectedName.toLowerCase().endsWith(".gif"))) {
-            status.setText("اختر صورة أو GIF أو فيديو.");
+            status.setText(s(R.string.choose_media_status));
             return;
         }
         if (stickerNames().size() >= MAX_STICKERS) {
-            status.setText("اكتملت الحزمة: الحد الأقصى 30 ملصقًا.");
+            status.setText(s(R.string.pack_full));
             return;
         }
         if (!stickerNames().isEmpty() && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
-            status.setText("هذه الحزمة ثابتة. احذف ملصقاتها أو استورد ZIP متحركًا قبل إضافة GIF أو فيديو.");
+            status.setText(s(R.string.static_pack_only));
             return;
         }
         busy = true;
-        status.setText("جارٍ تجهيز الملصق وتحويله إلى WebP متحرك…");
+        status.setText(s(R.string.convert_media));
         addButton.setEnabled(false);
         worker.execute(() -> {
             String error = null;
@@ -485,10 +533,10 @@ public class MainActivity extends Activity {
                 busy = false;
                 addButton.setEnabled(true);
                 if (message == null) {
-                    status.setText("تم إنشاء الملصق المتحرك وحفظه في الحزمة.");
+                    status.setText(s(R.string.convert_success));
                     refreshStickers();
                 } else {
-                    status.setText("لم يكتمل التحويل: " + message);
+                    status.setText(isRtlLanguage() ? "لم يكتمل التحويل: " + message : s(R.string.convert_failed));
                 }
             });
         });
@@ -620,10 +668,10 @@ public class MainActivity extends Activity {
             rp.bottomMargin = dp(8);
             stickerGrid.addView(row, rp);
         }
-        String selectedName = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getString(KEY_PACK_NAME, "الحزمة المختارة");
-        status.setText("«" + selectedName + "»: فيها " + names.size() + " من 30 ملصقًا.");
+        String selectedName = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getString(KEY_PACK_NAME, s(R.string.default_pack_name));
+        status.setText(getString(R.string.pack_status, selectedName, names.size()));
         addButton.setEnabled(names.size() >= 3 && !busy);
-        addButton.setText(names.size() < 3 ? "أضف " + (3 - names.size()) + " ملصقات أخرى أولًا" : "أضف الحزمة المختارة إلى واتساب");
+        addButton.setText(names.size() < 3 ? getString(R.string.add_more, 3 - names.size()) : s(R.string.add_selected));
     }
 
     private void refreshPacks() {
@@ -638,7 +686,7 @@ public class MainActivity extends Activity {
         });
         for (String id : ids) {
             SharedPreferences prefs = getSharedPreferences(packPrefsName(id), MODE_PRIVATE);
-            String name = prefs.getString(KEY_PACK_NAME, "حزمة ملصقات");
+            String name = prefs.getString(KEY_PACK_NAME, s(R.string.default_pack_name));
             List<String> stickers = new ArrayList<>(prefs.getStringSet(KEY_STICKERS, Collections.emptySet()));
             Collections.sort(stickers, Comparator.comparingInt(MainActivity::stickerNumber));
             boolean selected = id.equals(currentPackId);
@@ -647,7 +695,7 @@ public class MainActivity extends Activity {
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.HORIZONTAL);
             card.setGravity(Gravity.CENTER_VERTICAL);
-            card.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            card.setLayoutDirection(isRtlLanguage() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
             card.setPadding(dp(9), dp(8), dp(9), dp(8));
             GradientDrawable background = new GradientDrawable();
             background.setColor(selected ? Color.rgb(232, 245, 244) : Color.WHITE);
@@ -687,14 +735,14 @@ public class MainActivity extends Activity {
             packTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
             info.addView(packTitle, matchWrap());
             TextView packDetails = new TextView(this);
-            packDetails.setText(stickers.size() + " ملصقًا  •  " + (animated ? "متحركة" : "ثابتة")
-                    + (selected ? "  •  مفتوحة الآن" : ""));
+            packDetails.setText(getString(R.string.pack_stickers, stickers.size()) + "  •  " + s(animated ? R.string.animated : R.string.static)
+                    + (selected ? "  •  " + s(R.string.selected_now) : ""));
             packDetails.setTextColor(selected ? Color.rgb(22, 102, 106) : Color.rgb(100, 116, 139));
             packDetails.setTextSize(12);
             info.addView(packDetails, matchWrap());
             card.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-            Button choice = makeButton(selected ? "مفتوحة" : "اختيار");
+            Button choice = makeButton(s(selected ? R.string.open_pack : R.string.select_pack));
             choice.setTextSize(12);
             choice.setMinWidth(0);
             choice.setPadding(dp(8), 0, dp(8), 0);
@@ -711,7 +759,7 @@ public class MainActivity extends Activity {
         }
         if (ids.isEmpty()) {
             TextView empty = new TextView(this);
-            empty.setText("لا توجد حزم بعد. استورد ملف ZIP لتظهر هنا.");
+            empty.setText(s(R.string.empty_packs));
             empty.setTextColor(Color.rgb(71, 85, 105));
             packList.addView(empty, matchWrap());
         }
@@ -754,11 +802,11 @@ public class MainActivity extends Activity {
         label.setTextColor(Color.rgb(71, 85, 105));
         label.setGravity(Gravity.CENTER);
         card.addView(label, matchWrap());
-        Button remove = makeButton("حذف");
+        Button remove = makeButton(s(R.string.remove));
         remove.setTextSize(12);
         remove.setOnClickListener(v -> {
             if (stickerNames().size() <= 3) {
-                status.setText("احتفظ بثلاثة ملصقات على الأقل حتى تستطيع إضافة الحزمة.");
+                status.setText(s(R.string.keep_three));
                 return;
             }
             new File(folder(this), name).delete();
@@ -775,23 +823,23 @@ public class MainActivity extends Activity {
     private void addPackToWhatsApp() {
         List<String> names = stickerNames();
         if (names.size() < 3) {
-            status.setText("أضف ثلاثة ملصقات على الأقل قبل التثبيت.");
+            status.setText(s(R.string.minimum_before_whatsapp));
             return;
         }
         saveFields();
-        String[] labels = {"واتساب العادي", "واتساب للأعمال"};
+        String[] labels = {s(R.string.whatsapp_normal), s(R.string.whatsapp_business)};
         String[] packages = {"com.whatsapp", "com.whatsapp.w4b"};
         new AlertDialog.Builder(this)
-                .setTitle("إلى أي تطبيق تريد إضافة «" + packTitle() + "»؟")
+                .setTitle(getString(R.string.ask_target, packTitle()))
                 .setItems(labels, (dialog, which) -> {
                     String packageName = packages[which];
                     if (!isPackageInstalled(packageName)) {
-                        status.setText(which == 0 ? "واتساب العادي غير مثبت على الهاتف." : "واتساب للأعمال غير مثبت على الهاتف.");
+                        status.setText(getString(R.string.app_not_installed, labels[which]));
                         return;
                     }
                     sendPackToWhatsApp(packageName);
                 })
-                .setNegativeButton("إلغاء", null)
+                .setNegativeButton(s(R.string.cancel), null)
                 .show();
     }
 
@@ -804,7 +852,7 @@ public class MainActivity extends Activity {
         try {
             startActivityForResult(intent, 22);
         } catch (Exception e) {
-            status.setText("تعذّر فتح التطبيق المختار لإضافة الحزمة: " + e.getMessage());
+            status.setText(s(R.string.open_whatsapp_failed));
         }
     }
 
@@ -853,7 +901,7 @@ public class MainActivity extends Activity {
                         sticker.delete();
                     }
                 }
-                prefs.edit().putString(KEY_PACK_NAME, prefs.getString(KEY_PACK_NAME, "ملصقات تجريبية"))
+                prefs.edit().putString(KEY_PACK_NAME, prefs.getString(KEY_PACK_NAME, s(R.string.default_pack_name)))
                         .putString(KEY_PUBLISHER, prefs.getString(KEY_PUBLISHER, "KWL360"))
                         .putBoolean(KEY_ANIMATED, prefs.getBoolean(KEY_ANIMATED, true))
                         .putStringSet(KEY_STICKERS, new TreeSet<>(existing)).putLong("image_data_version", 1L).apply();
@@ -972,14 +1020,14 @@ public class MainActivity extends Activity {
 
     private void loadFields() {
         SharedPreferences prefs = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE);
-        packName.setText(prefs.getString(KEY_PACK_NAME, "حزمة ملصقات"));
+        packName.setText(prefs.getString(KEY_PACK_NAME, s(R.string.default_pack_name)));
         publisher.setText(prefs.getString(KEY_PUBLISHER, "KWL360"));
     }
 
     private void saveFields() {
         if (packName == null || publisher == null) return;
         getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).edit()
-                .putString(KEY_PACK_NAME, cleanField(packName.getText().toString(), "حزمة ملصقات"))
+                .putString(KEY_PACK_NAME, cleanField(packName.getText().toString(), s(R.string.default_pack_name)))
                 .putString(KEY_PUBLISHER, cleanField(publisher.getText().toString(), "KWL360"))
                 .apply();
         getContentResolver().notifyChange(Uri.parse("content://" + AUTH + "/metadata/" + currentPackId), null);
@@ -987,7 +1035,7 @@ public class MainActivity extends Activity {
     }
 
     private String packTitle() {
-        return cleanField(packName.getText().toString(), "حزمة ملصقات");
+        return cleanField(packName.getText().toString(), s(R.string.default_pack_name));
     }
 
     private String publisherName() {
@@ -1068,7 +1116,7 @@ public class MainActivity extends Activity {
                     SharedPreferences prefs = getContext().getSharedPreferences(packPrefsName(id), MODE_PRIVATE);
                     Set<String> saved = prefs.getStringSet(KEY_STICKERS, Collections.emptySet());
                     if (saved.size() < 3) continue;
-                    String name = prefs.getString(KEY_PACK_NAME, "حزمة ملصقات");
+                    String name = prefs.getString(KEY_PACK_NAME, getContext().getString(R.string.default_pack_name));
                     String author = prefs.getString(KEY_PUBLISHER, "KWL360");
                     String version = String.valueOf(prefs.getLong("image_data_version", 1L));
                     int animated = prefs.getBoolean(KEY_ANIMATED, false) ? 1 : 0;
@@ -1085,7 +1133,7 @@ public class MainActivity extends Activity {
                     List<String> ordered = new ArrayList<>(names);
                     Collections.sort(ordered, Comparator.comparingInt(MainActivity::stickerNumber));
                     boolean animated = prefs.getBoolean(KEY_ANIMATED, false);
-                    for (String name : ordered) cursor.addRow(new Object[]{name, "🇵🇸", animated ? "ملصق متحرك" : "ملصق فلسطيني"});
+                    for (String name : ordered) cursor.addRow(new Object[]{name, "🇵🇸", getContext().getString(animated ? R.string.sticker_access_animated : R.string.sticker_access_static)});
                 }
                 return cursor;
             }
