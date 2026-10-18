@@ -1,6 +1,7 @@
 package com.kwl360.wats;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -59,7 +60,9 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity {
     static final String AUTH = "com.kwl360.wats.stickercontentprovider";
     static final String ID = "kwl_demo";
-    private static final String PREFS = "kwl360_sticker_pack";
+    private static final String PREFS = "kwl360_sticker_packs";
+    private static final String KEY_PACK_IDS = "pack_ids";
+    private static final String KEY_SELECTED_PACK = "selected_pack";
     private static final String KEY_STICKERS = "stickers";
     private static final String KEY_ANIMATED = "animated_pack";
     private static final String KEY_PACK_NAME = "pack_name";
@@ -75,8 +78,10 @@ public class MainActivity extends Activity {
     private EditText packName;
     private EditText publisher;
     private LinearLayout stickerGrid;
+    private LinearLayout packList;
     private Button addButton;
     private boolean busy;
+    private String currentPackId = ID;
 
     @Override
     public void onCreate(Bundle state) {
@@ -84,6 +89,7 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(Color.rgb(15, 23, 42));
         getWindow().setNavigationBarColor(Color.rgb(15, 23, 42));
         ensurePackFiles();
+        currentPackId = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_SELECTED_PACK, ID);
         buildScreen();
         if (Build.VERSION.SDK_INT >= 35) {
             getWindow().setStatusBarColor(Color.TRANSPARENT);
@@ -99,6 +105,7 @@ public class MainActivity extends Activity {
             content.requestApplyInsets();
         }
         loadFields();
+        refreshPacks();
         refreshStickers();
     }
 
@@ -172,8 +179,22 @@ public class MainActivity extends Activity {
         details.addView(publisher, matchWrap());
         root.addView(details, cardParams());
 
+        LinearLayout packs = sectionCard();
+        packs.addView(sectionTitle("٢. حزمك المستوردة"), matchWrap());
+        TextView packsHint = new TextView(this);
+        packsHint.setText("استورد كل ZIP كحزمة مستقلة، ثم اختر الحزمة التي تريد إضافتها إلى واتساب.");
+        packsHint.setTextColor(Color.rgb(71, 85, 105));
+        packsHint.setTextSize(13);
+        packs.addView(packsHint, matchWrap());
+        packList = new LinearLayout(this);
+        packList.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams packListParams = matchWrap();
+        packListParams.topMargin = dp(6);
+        packs.addView(packList, packListParams);
+        root.addView(packs, cardParams());
+
         LinearLayout actions = sectionCard();
-        actions.addView(sectionTitle("٢. أضف ملصقات"), matchWrap());
+        actions.addView(sectionTitle("٣. أضف ملصقات"), matchWrap());
         Button choose = makeButton("اختر صورة أو GIF أو فيديو");
         choose.setOnClickListener(v -> chooseMedia());
         LinearLayout.LayoutParams chooseParams = matchWrap();
@@ -211,7 +232,7 @@ public class MainActivity extends Activity {
         root.addView(status, statusParams);
 
         LinearLayout contents = sectionCard();
-        contents.addView(sectionTitle("٣. راجع ملصقات الحزمة"), matchWrap());
+        contents.addView(sectionTitle("٤. راجع ملصقات الحزمة المختارة"), matchWrap());
         stickerGrid = new LinearLayout(this);
         stickerGrid.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams gridParams = matchWrap();
@@ -271,13 +292,21 @@ public class MainActivity extends Activity {
         busy = true;
         status.setText("جارٍ فحص ملف ZIP واستيراد ملصقات WebP…");
         addButton.setEnabled(false);
+        final String importedPackId = "kwl_" + System.currentTimeMillis();
+        String archiveName = queryDisplayName(uri);
+        final String importedPackName = cleanField(archiveName.replaceFirst("(?i)\\.zip$", ""), "حزمة جديدة");
+        final String importedPublisher = "KWL360";
         worker.execute(() -> {
             List<String> imported = new ArrayList<>();
             String error = null;
-            File packDir = folder(this);
+            File packDir = folder(this, importedPackId);
+            if (!packDir.exists() && !packDir.mkdirs()) {
+                error = "تعذّر إنشاء مساحة للحزمة الجديدة.";
+            }
             File staging = new File(packDir, ".zip-import");
             Boolean packAnimated = null;
             try {
+                if (error != null) throw new IOException(error);
                 if (staging.exists()) deleteTree(staging);
                 if (!staging.mkdirs()) throw new IOException("تعذّر تجهيز مساحة استيراد مؤقتة.");
                 InputStream input = getContentResolver().openInputStream(uri);
@@ -311,22 +340,35 @@ public class MainActivity extends Activity {
                     }
                 }
                 if (imported.size() < 3) throw new IOException("تحتاج الحزمة إلى 3 ملصقات صالحة على الأقل.");
-                replaceStickerFiles(staging, imported);
-                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean(KEY_ANIMATED, Boolean.TRUE.equals(packAnimated)).apply();
-                saveStickerNames(imported);
+                installNewPackFiles(staging, packDir, imported);
+                SharedPreferences.Editor pack = getSharedPreferences(packPrefsName(importedPackId), MODE_PRIVATE).edit()
+                        .putString(KEY_PACK_NAME, importedPackName)
+                        .putString(KEY_PUBLISHER, importedPublisher)
+                        .putBoolean(KEY_ANIMATED, Boolean.TRUE.equals(packAnimated))
+                        .putStringSet(KEY_STICKERS, new TreeSet<>(imported))
+                        .putLong("image_data_version", 1L);
+                if (!pack.commit()) throw new IOException("تعذّر حفظ بيانات الحزمة المستوردة.");
+                File tray = new File(packDir, "tray.png");
+                if (!tray.isFile()) copyAsset("stickers/tray.png", tray);
+                registerPack(this, importedPackId);
             } catch (Exception e) {
                 error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
-                if (staging.exists()) deleteTree(staging);
+                if (packDir.exists()) deleteTree(packDir);
+                unregisterPack(this, importedPackId);
             }
             final String message = error;
             final int count = imported.size();
             runOnUiThread(() -> {
                 busy = false;
                 if (message == null) {
-                    status.setText("تم استيراد " + count + " ملصقًا من ملف ZIP.");
+                    currentPackId = importedPackId;
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_SELECTED_PACK, currentPackId).apply();
+                    loadFields();
+                    status.setText("تم استيراد «" + importedPackName + "» كحزمة مستقلة تضم " + count + " ملصقًا.");
                 } else {
                     status.setText("تعذّر استيراد ZIP: " + message);
                 }
+                refreshPacks();
                 refreshStickers();
             });
         });
@@ -366,35 +408,13 @@ public class MainActivity extends Activity {
         file.delete();
     }
 
-    private void replaceStickerFiles(File staging, List<String> newNames) throws IOException {
-        File packDir = folder(this);
-        File backup = new File(packDir, ".zip-backup");
-        if (backup.exists()) deleteTree(backup);
-        if (!backup.mkdirs()) throw new IOException("تعذّر حفظ نسخة الاستعادة المؤقتة.");
-        List<String> previous = new ArrayList<>();
-        List<String> installed = new ArrayList<>();
-        try {
-            File[] currentFiles = packDir.listFiles();
-            if (currentFiles != null) {
-                for (File file : currentFiles) {
-                    if (file.isFile() && file.getName().matches("sticker-[0-9]+\\.webp")) {
-                        if (!file.renameTo(new File(backup, file.getName()))) throw new IOException("تعذّر حفظ الملصقات الحالية مؤقتًا.");
-                        previous.add(file.getName());
-                    }
-                }
+    private void installNewPackFiles(File staging, File packDir, List<String> newNames) throws IOException {
+        for (String name : newNames) {
+            if (!new File(staging, name).renameTo(new File(packDir, name))) {
+                throw new IOException("تعذّر تثبيت ملفات الملصقات المستوردة.");
             }
-            for (String name : newNames) {
-                if (!new File(staging, name).renameTo(new File(packDir, name))) throw new IOException("تعذّر تثبيت ملفات الملصقات المستوردة.");
-                installed.add(name);
-            }
-            deleteTree(backup);
-            deleteTree(staging);
-        } catch (IOException failure) {
-            for (String name : installed) new File(packDir, name).delete();
-            for (String name : previous) new File(backup, name).renameTo(new File(packDir, name));
-            deleteTree(backup);
-            throw failure;
         }
+        deleteTree(staging);
     }
 
     private void chooseMedia() {
@@ -433,7 +453,7 @@ public class MainActivity extends Activity {
             status.setText("اكتملت الحزمة: الحد الأقصى 30 ملصقًا.");
             return;
         }
-        if (!stickerNames().isEmpty() && !getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
+        if (!stickerNames().isEmpty() && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
             status.setText("هذه الحزمة ثابتة. احذف ملصقاتها أو استورد ZIP متحركًا قبل إضافة GIF أو فيديو.");
             return;
         }
@@ -599,9 +619,44 @@ public class MainActivity extends Activity {
             rp.bottomMargin = dp(8);
             stickerGrid.addView(row, rp);
         }
-        status.setText("في الحزمة " + names.size() + " من 30 ملصقًا.");
+        String selectedName = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getString(KEY_PACK_NAME, "الحزمة المختارة");
+        status.setText("«" + selectedName + "»: فيها " + names.size() + " من 30 ملصقًا.");
         addButton.setEnabled(names.size() >= 3 && !busy);
-        addButton.setText(names.size() < 3 ? "أضف " + (3 - names.size()) + " ملصقات أخرى أولًا" : "أضف الحزمة إلى واتساب");
+        addButton.setText(names.size() < 3 ? "أضف " + (3 - names.size()) + " ملصقات أخرى أولًا" : "أضف الحزمة المختارة إلى واتساب");
+    }
+
+    private void refreshPacks() {
+        if (packList == null) return;
+        packList.removeAllViews();
+        List<String> ids = packIds(this);
+        for (String id : ids) {
+            SharedPreferences prefs = getSharedPreferences(packPrefsName(id), MODE_PRIVATE);
+            String name = prefs.getString(KEY_PACK_NAME, "حزمة ملصقات");
+            int count = prefs.getStringSet(KEY_STICKERS, Collections.emptySet()).size();
+            Button choice = makeButton((id.equals(currentPackId) ? "✓  " : "") + name + "  •  " + count + " ملصق");
+            choice.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    id.equals(currentPackId) ? Color.rgb(15, 23, 42) : Color.rgb(22, 102, 106)));
+            choice.setOnClickListener(v -> selectPack(id));
+            LinearLayout.LayoutParams params = matchWrap();
+            params.topMargin = dp(4);
+            packList.addView(choice, params);
+        }
+        if (ids.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("لا توجد حزم بعد. استورد ملف ZIP لتظهر هنا.");
+            empty.setTextColor(Color.rgb(71, 85, 105));
+            packList.addView(empty, matchWrap());
+        }
+    }
+
+    private void selectPack(String id) {
+        if (busy) return;
+        saveFields();
+        currentPackId = id;
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_SELECTED_PACK, id).apply();
+        loadFields();
+        refreshPacks();
+        refreshStickers();
     }
 
     private View stickerCard(String name) {
@@ -647,23 +702,32 @@ public class MainActivity extends Activity {
             return;
         }
         saveFields();
-        String packageName = "com.whatsapp";
-        if (!isPackageInstalled(packageName)) {
-            packageName = "com.whatsapp.w4b";
-            if (!isPackageInstalled(packageName)) {
-                status.setText("ثبّت واتساب أو واتساب للأعمال أولًا.");
-                return;
-            }
-        }
+        String[] labels = {"واتساب العادي", "واتساب للأعمال"};
+        String[] packages = {"com.whatsapp", "com.whatsapp.w4b"};
+        new AlertDialog.Builder(this)
+                .setTitle("إلى أي تطبيق تريد إضافة «" + packTitle() + "»؟")
+                .setItems(labels, (dialog, which) -> {
+                    String packageName = packages[which];
+                    if (!isPackageInstalled(packageName)) {
+                        status.setText(which == 0 ? "واتساب العادي غير مثبت على الهاتف." : "واتساب للأعمال غير مثبت على الهاتف.");
+                        return;
+                    }
+                    sendPackToWhatsApp(packageName);
+                })
+                .setNegativeButton("إلغاء", null)
+                .show();
+    }
+
+    private void sendPackToWhatsApp(String packageName) {
         Intent intent = new Intent("com.whatsapp.intent.action.ENABLE_STICKER_PACK");
         intent.setPackage(packageName);
-        intent.putExtra("sticker_pack_id", ID);
+        intent.putExtra("sticker_pack_id", currentPackId);
         intent.putExtra("sticker_pack_authority", AUTH);
         intent.putExtra("sticker_pack_name", packTitle());
         try {
             startActivityForResult(intent, 22);
         } catch (Exception e) {
-            status.setText("تعذّر فتح واتساب لإضافة الحزمة: " + e.getMessage());
+            status.setText("تعذّر فتح التطبيق المختار لإضافة الحزمة: " + e.getMessage());
         }
     }
 
@@ -677,29 +741,52 @@ public class MainActivity extends Activity {
     }
 
     private void ensurePackFiles() {
-        File dir = folder(this);
+        SharedPreferences index = getSharedPreferences(PREFS, MODE_PRIVATE);
+        Set<String> registered = new TreeSet<>(index.getStringSet(KEY_PACK_IDS, Collections.emptySet()));
+        SharedPreferences legacy = getSharedPreferences("kwl360_sticker_pack", MODE_PRIVATE);
+        SharedPreferences demoPrefs = getSharedPreferences(packPrefsName(ID), MODE_PRIVATE);
+        if (!registered.contains(ID) && legacy.contains("stickers")) {
+            Set<String> oldNames = legacy.getStringSet("stickers", Collections.emptySet());
+            demoPrefs.edit()
+                    .putString(KEY_PACK_NAME, legacy.getString("pack_name", "ملصقات حماد"))
+                    .putString(KEY_PUBLISHER, legacy.getString("publisher", "KWL360"))
+                    .putBoolean(KEY_ANIMATED, legacy.getBoolean("animated_pack", true))
+                    .putStringSet(KEY_STICKERS, new TreeSet<>(oldNames))
+                    .putLong("image_data_version", legacy.getLong("image_data_version", 1L))
+                    .commit();
+        }
+        registerPack(this, ID);
+        if (!index.contains(KEY_SELECTED_PACK)) index.edit().putString(KEY_SELECTED_PACK, ID).apply();
+        File dir = folder(this, ID);
         if (!dir.exists()) dir.mkdirs();
         File tray = new File(dir, "tray.png");
         try {
             if (!tray.exists()) copyAsset("stickers/tray.png", tray);
-            List<String> existing = stickerNames();
+            SharedPreferences prefs = getSharedPreferences(packPrefsName(ID), MODE_PRIVATE);
+            Set<String> saved = prefs.getStringSet(KEY_STICKERS, null);
+            List<String> existing = saved == null ? new ArrayList<>() : new ArrayList<>(saved);
             if (existing.isEmpty()) {
                 for (int i = 1; i <= 3; i++) {
                     String name = "sticker-" + i + ".webp";
                     File sticker = new File(dir, name);
                     try {
                         copyAsset("stickers/" + name, sticker);
-                        addStickerName(name);
+                        existing.add(name);
                     } catch (Exception ignored) {
                         sticker.delete();
                     }
                 }
+                prefs.edit().putString(KEY_PACK_NAME, prefs.getString(KEY_PACK_NAME, "ملصقات تجريبية"))
+                        .putString(KEY_PUBLISHER, prefs.getString(KEY_PUBLISHER, "KWL360"))
+                        .putBoolean(KEY_ANIMATED, prefs.getBoolean(KEY_ANIMATED, true))
+                        .putStringSet(KEY_STICKERS, new TreeSet<>(existing)).putLong("image_data_version", 1L).apply();
             } else {
                 for (File f : dir.listFiles()) {
                     if (f.isFile() && f.getName().matches("sticker-[0-9]+\\.webp") && !existing.contains(f.getName())) {
-                        addStickerName(f.getName());
+                        existing.add(f.getName());
                     }
                 }
+                prefs.edit().putStringSet(KEY_STICKERS, new TreeSet<>(existing)).apply();
             }
         } catch (Exception ignored) {
             // The user can still create a complete pack from their own media.
@@ -714,12 +801,35 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static File folder(android.content.Context context) {
-        return new File(context.getFilesDir(), "packs/" + ID);
+    private static File folder(android.content.Context context, String id) {
+        return new File(context.getFilesDir(), "packs/" + id);
+    }
+
+    private File folder(android.content.Context context) { return folder(context, currentPackId); }
+
+    private static String packPrefsName(String id) { return "kwl360_pack_" + id; }
+
+    private static List<String> packIds(android.content.Context context) {
+        Set<String> saved = context.getSharedPreferences(PREFS, MODE_PRIVATE).getStringSet(KEY_PACK_IDS, Collections.emptySet());
+        ArrayList<String> ids = new ArrayList<>(saved);
+        Collections.sort(ids);
+        return ids;
+    }
+
+    private static void registerPack(android.content.Context context, String id) {
+        Set<String> ids = new TreeSet<>(context.getSharedPreferences(PREFS, MODE_PRIVATE).getStringSet(KEY_PACK_IDS, Collections.emptySet()));
+        ids.add(id);
+        context.getSharedPreferences(PREFS, MODE_PRIVATE).edit().putStringSet(KEY_PACK_IDS, ids).commit();
+    }
+
+    private static void unregisterPack(android.content.Context context, String id) {
+        Set<String> ids = new TreeSet<>(context.getSharedPreferences(PREFS, MODE_PRIVATE).getStringSet(KEY_PACK_IDS, Collections.emptySet()));
+        ids.remove(id);
+        context.getSharedPreferences(PREFS, MODE_PRIVATE).edit().putStringSet(KEY_PACK_IDS, ids).commit();
     }
 
     private List<String> stickerNames() {
-        Set<String> saved = getSharedPreferences(PREFS, MODE_PRIVATE).getStringSet(KEY_STICKERS, null);
+        Set<String> saved = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getStringSet(KEY_STICKERS, null);
         List<String> names = saved == null ? new ArrayList<>() : new ArrayList<>(saved);
         Collections.sort(names, Comparator.comparingInt(MainActivity::stickerNumber));
         return names;
@@ -739,12 +849,13 @@ public class MainActivity extends Activity {
 
     private void saveStickerNames(List<String> names) {
         Set<String> sorted = new TreeSet<>(names);
-        SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+        SharedPreferences prefs = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit()
                 .putStringSet(KEY_STICKERS, sorted)
-                .putLong("image_data_version", getSharedPreferences(PREFS, MODE_PRIVATE).getLong("image_data_version", 0L) + 1L);
+                .putLong("image_data_version", prefs.getLong("image_data_version", 0L) + 1L);
         if (names.isEmpty()) editor.putBoolean(KEY_ANIMATED, true);
         editor.apply();
-        getContentResolver().notifyChange(Uri.parse("content://" + AUTH + "/metadata/" + ID), null);
+        getContentResolver().notifyChange(Uri.parse("content://" + AUTH + "/metadata/" + currentPackId), null);
     }
 
     private File nextStickerFile() throws IOException {
@@ -783,21 +894,23 @@ public class MainActivity extends Activity {
     }
 
     private void loadFields() {
-        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-        packName.setText(prefs.getString(KEY_PACK_NAME, "ملصقات حماد"));
+        SharedPreferences prefs = getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE);
+        packName.setText(prefs.getString(KEY_PACK_NAME, "حزمة ملصقات"));
         publisher.setText(prefs.getString(KEY_PUBLISHER, "KWL360"));
     }
 
     private void saveFields() {
         if (packName == null || publisher == null) return;
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
-                .putString(KEY_PACK_NAME, cleanField(packName.getText().toString(), "ملصقات حماد"))
+        getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).edit()
+                .putString(KEY_PACK_NAME, cleanField(packName.getText().toString(), "حزمة ملصقات"))
                 .putString(KEY_PUBLISHER, cleanField(publisher.getText().toString(), "KWL360"))
                 .apply();
+        getContentResolver().notifyChange(Uri.parse("content://" + AUTH + "/metadata/" + currentPackId), null);
+        refreshPacks();
     }
 
     private String packTitle() {
-        return cleanField(packName.getText().toString(), "ملصقات حماد");
+        return cleanField(packName.getText().toString(), "حزمة ملصقات");
     }
 
     private String publisherName() {
@@ -870,24 +983,32 @@ public class MainActivity extends Activity {
         @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
             List<String> path = uri.getPathSegments();
             if (path.isEmpty()) return null;
-            SharedPreferences prefs = getContext().getSharedPreferences(PREFS, MODE_PRIVATE);
-            if ("metadata".equals(path.get(0)) && (path.size() == 1 || (path.size() == 2 && ID.equals(path.get(1))))) {
+            if ("metadata".equals(path.get(0)) && (path.size() == 1 || path.size() == 2)) {
                 MatrixCursor cursor = new MatrixCursor(META);
-                String name = prefs.getString(KEY_PACK_NAME, "ملصقات حماد");
-                String author = prefs.getString(KEY_PUBLISHER, "KWL360");
-                String version = String.valueOf(prefs.getLong("image_data_version", 1L));
-                int animated = prefs.getBoolean(KEY_ANIMATED, true) ? 1 : 0;
-                cursor.addRow(new Object[]{ID, name, author, "tray.png", "", "", "",
-                        "https://kwl360.com", "", "", version, 0, animated});
+                List<String> ids = path.size() == 2 ? Collections.singletonList(path.get(1)) : packIds(getContext());
+                for (String id : ids) {
+                    if (!id.matches("[a-zA-Z0-9_-]{1,60}")) continue;
+                    SharedPreferences prefs = getContext().getSharedPreferences(packPrefsName(id), MODE_PRIVATE);
+                    Set<String> saved = prefs.getStringSet(KEY_STICKERS, Collections.emptySet());
+                    if (saved.size() < 3) continue;
+                    String name = prefs.getString(KEY_PACK_NAME, "حزمة ملصقات");
+                    String author = prefs.getString(KEY_PUBLISHER, "KWL360");
+                    String version = String.valueOf(prefs.getLong("image_data_version", 1L));
+                    int animated = prefs.getBoolean(KEY_ANIMATED, false) ? 1 : 0;
+                    cursor.addRow(new Object[]{id, name, author, "tray.png", "", "", "",
+                            "https://kwl360.com", "", "", version, 0, animated});
+                }
                 return cursor;
             }
-            if (path.size() == 2 && "stickers".equals(path.get(0)) && ID.equals(path.get(1))) {
+            if (path.size() == 2 && "stickers".equals(path.get(0)) && path.get(1).matches("[a-zA-Z0-9_-]{1,60}")) {
                 MatrixCursor cursor = new MatrixCursor(STICKERS);
+                SharedPreferences prefs = getContext().getSharedPreferences(packPrefsName(path.get(1)), MODE_PRIVATE);
                 Set<String> names = prefs.getStringSet(KEY_STICKERS, null);
                 if (names != null) {
                     List<String> ordered = new ArrayList<>(names);
                     Collections.sort(ordered, Comparator.comparingInt(MainActivity::stickerNumber));
-                    for (String name : ordered) cursor.addRow(new Object[]{name, "🇵🇸", "ملصق متحرك"});
+                    boolean animated = prefs.getBoolean(KEY_ANIMATED, false);
+                    for (String name : ordered) cursor.addRow(new Object[]{name, "🇵🇸", animated ? "ملصق متحرك" : "ملصق فلسطيني"});
                 }
                 return cursor;
             }
@@ -896,11 +1017,12 @@ public class MainActivity extends Activity {
 
         @Override public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
             List<String> path = uri.getPathSegments();
-            if (path.size() != 3 || !"stickers_asset".equals(path.get(0)) || !ID.equals(path.get(1))
+            if (path.size() != 3 || !"stickers_asset".equals(path.get(0)) || !path.get(1).matches("[a-zA-Z0-9_-]{1,60}")
                     || !path.get(2).matches("tray\\.png|sticker-[0-9]+\\.webp")) {
                 throw new FileNotFoundException("Invalid sticker asset");
             }
-            File file = new File(folder(getContext()), path.get(2));
+            if (!packIds(getContext()).contains(path.get(1))) throw new FileNotFoundException("Unknown sticker pack");
+            File file = new File(folder(getContext(), path.get(1)), path.get(2));
             if (!file.isFile()) throw new FileNotFoundException("Sticker not found");
             return new AssetFileDescriptor(ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY), 0, file.length());
         }
