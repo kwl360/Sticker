@@ -20,7 +20,7 @@
     <string name="add_selected">أضف الحزمة المختارة إلى واتساب</string>
     <string name="pack_stickers">%1$d ملصقًا</string>
     <string name="animated">متحركة</string>
-    <string name="static">ثابتة</string>
+    <string name="static_label">ثابتة</string>
     <string name="selected_now">محددة الآن</string>
     <string name="open_pack">مفتوحة</string>
     <string name="select_pack">اختيار</string>

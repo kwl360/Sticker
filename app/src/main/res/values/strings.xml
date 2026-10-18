@@ -22,7 +22,7 @@
     <string name="add_selected">Add selected pack to WhatsApp</string>
     <string name="pack_stickers">%1$d stickers</string>
     <string name="animated">Animated</string>
-    <string name="static">Static</string>
+    <string name="static_label">Static</string>
     <string name="selected_now">Selected</string>
     <string name="open_pack">Open</string>
     <string name="select_pack">Select</string>

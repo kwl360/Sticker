@@ -19,7 +19,7 @@
     <string name="add_selected">Añadir el paquete seleccionado a WhatsApp</string>
     <string name="pack_stickers">%1$d stickers</string>
     <string name="animated">Animados</string>
-    <string name="static">Estáticos</string>
+    <string name="static_label">Estáticos</string>
     <string name="selected_now">Seleccionado</string>
     <string name="open_pack">Abierto</string>
     <string name="select_pack">Elegir</string>

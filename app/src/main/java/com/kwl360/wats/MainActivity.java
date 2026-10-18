@@ -735,7 +735,7 @@ public class MainActivity extends Activity {
             packTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
             info.addView(packTitle, matchWrap());
             TextView packDetails = new TextView(this);
-            packDetails.setText(getString(R.string.pack_stickers, stickers.size()) + "  •  " + s(animated ? R.string.animated : R.string.static)
+            packDetails.setText(getString(R.string.pack_stickers, stickers.size()) + "  •  " + s(animated ? R.string.animated : R.string.static_label)
                     + (selected ? "  •  " + s(R.string.selected_now) : ""));
             packDetails.setTextColor(selected ? Color.rgb(22, 102, 106) : Color.rgb(100, 116, 139));
             packDetails.setTextSize(12);

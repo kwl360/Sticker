@@ -19,7 +19,7 @@
     <string name="add_selected">将所选贴纸包添加到 WhatsApp</string>
     <string name="pack_stickers">%1$d 张贴纸</string>
     <string name="animated">动态</string>
-    <string name="static">静态</string>
+    <string name="static_label">静态</string>
     <string name="selected_now">已选中</string>
     <string name="open_pack">已打开</string>
     <string name="select_pack">选择</string>

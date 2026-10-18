@@ -19,7 +19,7 @@
     <string name="add_selected">चुना गया पैक WhatsApp में जोड़ें</string>
     <string name="pack_stickers">%1$d स्टिकर</string>
     <string name="animated">एनिमेटेड</string>
-    <string name="static">स्थिर</string>
+    <string name="static_label">स्थिर</string>
     <string name="selected_now">चुना गया</string>
     <string name="open_pack">खुला</string>
     <string name="select_pack">चुनें</string>

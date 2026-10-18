@@ -19,7 +19,7 @@
     <string name="add_selected">Tambahkan paket terpilih ke WhatsApp</string>
     <string name="pack_stickers">%1$d stiker</string>
     <string name="animated">Animasi</string>
-    <string name="static">Statis</string>
+    <string name="static_label">Statis</string>
     <string name="selected_now">Dipilih</string>
     <string name="open_pack">Terbuka</string>
     <string name="select_pack">Pilih</string>
