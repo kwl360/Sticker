@@ -3,5 +3,5 @@
 <queries><package android:name="com.whatsapp"/><package android:name="com.whatsapp.w4b"/></queries>
 <application android:label="@string/app_name" android:localeConfig="@xml/locales_config" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:theme="@android:style/Theme.Material.Light.NoActionBar">
 <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
-<provider android:name=".MainActivity$Provider" android:authorities="com.kwl360.wats.library.lang.stickercontentprovider" android:exported="true" android:enabled="true" android:grantUriPermissions="true" android:readPermission="com.whatsapp.sticker.READ"/>
+<provider android:name=".MainActivity$Provider" android:authorities="com.kwl360.wats.telegram.stickercontentprovider" android:exported="true" android:enabled="true" android:grantUriPermissions="true" android:readPermission="com.whatsapp.sticker.READ"/>
 </application></manifest>

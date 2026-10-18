@@ -62,7 +62,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
-    static final String AUTH = "com.kwl360.wats.library.lang.stickercontentprovider";
+    static final String AUTH = "com.kwl360.wats.telegram.stickercontentprovider";
     static final String ID = "kwl_demo";
     private static final String PREFS = "kwl360_sticker_packs";
     private static final String KEY_LANGUAGE = "ui_language";
