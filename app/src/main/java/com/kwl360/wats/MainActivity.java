@@ -100,6 +100,7 @@ public class MainActivity extends Activity {
 
     private static String supportedLanguage(String code) {
         if ("in".equals(code)) code = "id";
+        if ("zh".equals(code)) return "zh-CN";
         return ("ar en fr es zh id hi".contains(code) && code.length() == 2) ? code : "en";
     }
 
@@ -286,7 +287,7 @@ public class MainActivity extends Activity {
 
     private void showLanguagePicker() {
         saveFields();
-        final String[] tags = {"", "ar", "en", "fr", "es", "zh", "id", "hi"};
+        final String[] tags = {"", "ar", "en", "fr", "es", "zh-CN", "id", "hi"};
         final int[] labels = {R.string.auto_language, R.string.language_ar, R.string.language_en,
                 R.string.language_fr, R.string.language_es, R.string.language_zh,
                 R.string.language_id, R.string.language_hi};
