@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0F172A</color>
+    <color name="ic_launcher_background">#DDF6F1</color>
+    <color name="brand_navy">#18365B</color>
+    <color name="brand_blue">#2399CF</color>
+    <color name="brand_turquoise">#3CC0B7</color>
+    <color name="brand_orange">#F7773E</color>
+    <color name="brand_yellow">#FFC130</color>
+    <color name="brand_coral">#F1535F</color>
+    <color name="brand_mint">#DFF8EF</color>
+    <color name="brand_sky">#E5F6FC</color>
+    <color name="brand_background">#EEF9FB</color>
 </resources>

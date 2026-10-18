@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">Créateur de stickers WhatsApp et Telegram</string>
+    <string name="app_name">KWL360 WATS</string><string name="app_title">Créateur de stickers WhatsApp et Telegram</string>
     <string name="intro">Ajoutez des images ou importez un ZIP, vérifiez les stickers, puis ajoutez le pack à WhatsApp ou Telegram.</string>
     <string name="pack_data">1. Détails du pack</string><string name="pack_name">Nom du pack</string>
     <string name="pack_name_hint">Exemple : autocollants Hamad</string><string name="publisher">Éditeur</string>

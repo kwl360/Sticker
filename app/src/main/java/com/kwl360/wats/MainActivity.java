@@ -78,6 +78,22 @@ public class MainActivity extends Activity {
     private static final int MAX_STICKERS = 30;
     private static final long MAX_ANIMATED_BYTES = 500L * 1024L;
 
+    private static final int COLOR_NAVY = Color.rgb(24, 54, 91);
+    private static final int COLOR_BLUE = Color.rgb(35, 153, 207);
+    private static final int COLOR_ACTION_BLUE = Color.rgb(13, 119, 168);
+    private static final int COLOR_TURQUOISE = Color.rgb(60, 192, 183);
+    private static final int COLOR_ORANGE = Color.rgb(247, 119, 62);
+    private static final int COLOR_YELLOW = Color.rgb(255, 193, 48);
+    private static final int COLOR_CORAL = Color.rgb(241, 83, 95);
+    private static final int COLOR_BACKGROUND = Color.rgb(238, 249, 251);
+    private static final int COLOR_CARD = Color.WHITE;
+    private static final int COLOR_PALE_MINT = Color.rgb(223, 248, 239);
+    private static final int COLOR_PALE_BLUE = Color.rgb(229, 246, 252);
+    private static final int COLOR_PALE_YELLOW = Color.rgb(255, 247, 220);
+    private static final int COLOR_PALE_CORAL = Color.rgb(255, 239, 237);
+    private static final int COLOR_MUTED = Color.rgb(98, 116, 139);
+    private static final int COLOR_BORDER = Color.rgb(207, 231, 236);
+
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TextView status;
     private EditText packName;
@@ -114,8 +130,8 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(15, 23, 42));
-        getWindow().setNavigationBarColor(Color.rgb(15, 23, 42));
+        getWindow().setStatusBarColor(COLOR_NAVY);
+        getWindow().setNavigationBarColor(COLOR_NAVY);
         ensurePackFiles();
         currentPackId = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_SELECTED_PACK, ID);
         buildScreen();
@@ -155,7 +171,7 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(16), dp(14), dp(16), dp(24));
-        root.setBackgroundColor(Color.rgb(241, 245, 249));
+        root.setBackgroundColor(COLOR_BACKGROUND);
         root.setLayoutDirection(isRtlLanguage() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         scroll.addView(root);
         setContentView(scroll);
@@ -163,12 +179,20 @@ public class MainActivity extends Activity {
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setOrientation(LinearLayout.HORIZONTAL);
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.kwl360_logo);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logo.setContentDescription("KWL360");
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(48), dp(48));
+        logoParams.setMargins(0, 0, dp(8), 0);
+        header.addView(logo, logoParams);
+
         TextView brand = new TextView(this);
         brand.setText("KWL360  •  WATS");
-        brand.setTextColor(Color.rgb(22, 102, 106));
-        brand.setTextSize(13);
+        brand.setTextColor(COLOR_BLUE);
+        brand.setTextSize(14);
         brand.setTypeface(null, android.graphics.Typeface.BOLD);
-        brand.setGravity(Gravity.CENTER);
+        brand.setGravity(Gravity.CENTER_VERTICAL);
         brand.setPadding(0, dp(4), 0, dp(4));
         header.addView(brand, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         Button language = makeButton("🌐");
@@ -180,7 +204,7 @@ public class MainActivity extends Activity {
 
         TextView title = new TextView(this);
         title.setText(s(R.string.app_title));
-        title.setTextColor(Color.rgb(15, 23, 42));
+        title.setTextColor(COLOR_NAVY);
         title.setTextSize(24);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
@@ -189,7 +213,7 @@ public class MainActivity extends Activity {
 
         TextView intro = new TextView(this);
         intro.setText(s(R.string.intro));
-        intro.setTextColor(Color.rgb(71, 85, 105));
+        intro.setTextColor(COLOR_MUTED);
         intro.setTextSize(14);
         intro.setGravity(Gravity.CENTER);
         intro.setPadding(dp(6), 0, dp(6), dp(12));
@@ -220,7 +244,7 @@ public class MainActivity extends Activity {
         packs.addView(sectionTitle(s(R.string.imported_packs)), matchWrap());
         TextView packsHint = new TextView(this);
         packsHint.setText(s(R.string.packs_hint));
-        packsHint.setTextColor(Color.rgb(71, 85, 105));
+        packsHint.setTextColor(COLOR_MUTED);
         packsHint.setTextSize(13);
         packs.addView(packsHint, matchWrap());
         packList = new LinearLayout(this);
@@ -234,42 +258,46 @@ public class MainActivity extends Activity {
         actions.addView(sectionTitle(s(R.string.add_stickers)), matchWrap());
         Button choose = makeButton(s(R.string.choose_media));
         choose.setOnClickListener(v -> chooseMedia());
+        styleButton(choose, COLOR_ACTION_BLUE, Color.WHITE);
         LinearLayout.LayoutParams chooseParams = matchWrap();
         chooseParams.topMargin = dp(8);
         actions.addView(choose, chooseParams);
 
         Button importZip = makeButton(s(R.string.import_zip));
         importZip.setOnClickListener(v -> chooseZip());
+        styleButton(importZip, COLOR_ORANGE, COLOR_NAVY);
         LinearLayout.LayoutParams zipParams = matchWrap();
         zipParams.topMargin = dp(8);
         actions.addView(importZip, zipParams);
 
         TextView zipHint = new TextView(this);
         zipHint.setText(s(R.string.zip_hint));
-        zipHint.setTextColor(Color.rgb(71, 85, 105));
+        zipHint.setTextColor(COLOR_MUTED);
         zipHint.setTextSize(12);
         zipHint.setPadding(dp(2), dp(6), dp(2), 0);
         actions.addView(zipHint, matchWrap());
 
         addButton = makeButton(s(R.string.add_to_whatsapp));
         addButton.setOnClickListener(v -> addPackToWhatsApp());
+        styleButton(addButton, COLOR_TURQUOISE, COLOR_NAVY);
         LinearLayout.LayoutParams addParams = matchWrap();
         addParams.topMargin = dp(12);
         actions.addView(addButton, addParams);
 
         Button telegramButton = makeButton(s(R.string.add_to_telegram));
         telegramButton.setOnClickListener(v -> addPackToTelegram());
+        styleButton(telegramButton, COLOR_NAVY, Color.WHITE);
         LinearLayout.LayoutParams telegramParams = matchWrap();
         telegramParams.topMargin = dp(8);
         actions.addView(telegramButton, telegramParams);
         root.addView(actions, cardParams());
 
         status = new TextView(this);
-        status.setTextColor(Color.rgb(30, 41, 59));
+        status.setTextColor(COLOR_NAVY);
         status.setTextSize(14);
         status.setGravity(Gravity.CENTER);
         status.setPadding(dp(12), dp(12), dp(12), dp(12));
-        status.setBackgroundColor(Color.rgb(232, 240, 240));
+        status.setBackground(roundRect(COLOR_PALE_YELLOW, COLOR_YELLOW, 14));
         LinearLayout.LayoutParams statusParams = matchWrap();
         statusParams.bottomMargin = dp(12);
         root.addView(status, statusParams);
@@ -284,7 +312,7 @@ public class MainActivity extends Activity {
 
         TextView note = new TextView(this);
         note.setText(s(R.string.minimum_note));
-        note.setTextColor(Color.rgb(100, 116, 139));
+        note.setTextColor(COLOR_MUTED);
         note.setTextSize(12);
         note.setGravity(Gravity.CENTER);
         note.setPadding(0, dp(12), 0, 0);
@@ -310,7 +338,7 @@ public class MainActivity extends Activity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(14), dp(10), dp(14), dp(14));
-        card.setBackgroundColor(Color.WHITE);
+        card.setBackground(roundRect(COLOR_CARD, COLOR_BORDER, 18));
         return card;
     }
 
@@ -323,7 +351,7 @@ public class MainActivity extends Activity {
     private TextView fieldLabel(String text) {
         TextView label = new TextView(this);
         label.setText(text);
-        label.setTextColor(Color.rgb(51, 65, 85));
+        label.setTextColor(COLOR_NAVY);
         label.setTextSize(13);
         label.setTypeface(null, android.graphics.Typeface.BOLD);
         return label;
@@ -706,16 +734,16 @@ public class MainActivity extends Activity {
             card.setLayoutDirection(isRtlLanguage() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
             card.setPadding(dp(9), dp(8), dp(9), dp(8));
             GradientDrawable background = new GradientDrawable();
-            background.setColor(selected ? Color.rgb(232, 245, 244) : Color.WHITE);
+            background.setColor(selected ? COLOR_PALE_MINT : COLOR_CARD);
             background.setCornerRadius(dp(14));
-            background.setStroke(dp(selected ? 2 : 1), selected ? Color.rgb(22, 102, 106) : Color.rgb(226, 232, 240));
+            background.setStroke(dp(selected ? 2 : 1), selected ? COLOR_TURQUOISE : COLOR_BORDER);
             card.setBackground(background);
             card.setOnClickListener(v -> selectPack(id));
 
             ImageView preview = new ImageView(this);
             preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
             GradientDrawable previewBackground = new GradientDrawable();
-            previewBackground.setColor(Color.rgb(241, 245, 249));
+            previewBackground.setColor(COLOR_PALE_BLUE);
             previewBackground.setCornerRadius(dp(10));
             preview.setBackground(previewBackground);
             preview.setClipToOutline(true);
@@ -736,7 +764,7 @@ public class MainActivity extends Activity {
             info.setGravity(Gravity.CENTER_VERTICAL);
             TextView packTitle = new TextView(this);
             packTitle.setText(name);
-            packTitle.setTextColor(Color.rgb(15, 23, 42));
+            packTitle.setTextColor(COLOR_NAVY);
             packTitle.setTextSize(15);
             packTitle.setTypeface(null, android.graphics.Typeface.BOLD);
             packTitle.setMaxLines(1);
@@ -745,7 +773,7 @@ public class MainActivity extends Activity {
             TextView packDetails = new TextView(this);
             packDetails.setText(getString(R.string.pack_stickers, stickers.size()) + "  •  " + s(animated ? R.string.animated : R.string.static_label)
                     + (selected ? "  •  " + s(R.string.selected_now) : ""));
-            packDetails.setTextColor(selected ? Color.rgb(22, 102, 106) : Color.rgb(100, 116, 139));
+            packDetails.setTextColor(selected ? COLOR_TURQUOISE : COLOR_MUTED);
             packDetails.setTextSize(12);
             info.addView(packDetails, matchWrap());
             card.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -755,7 +783,7 @@ public class MainActivity extends Activity {
             choice.setMinWidth(0);
             choice.setPadding(dp(8), 0, dp(8), 0);
             choice.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                    selected ? Color.rgb(15, 23, 42) : Color.rgb(22, 102, 106)));
+                    selected ? COLOR_ORANGE : COLOR_ACTION_BLUE));
             choice.setOnClickListener(v -> selectPack(id));
             LinearLayout.LayoutParams choiceParams = new LinearLayout.LayoutParams(dp(82), dp(42));
             choiceParams.setMargins(dp(8), 0, 0, 0);
@@ -768,7 +796,7 @@ public class MainActivity extends Activity {
         if (ids.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText(s(R.string.empty_packs));
-            empty.setTextColor(Color.rgb(71, 85, 105));
+            empty.setTextColor(COLOR_MUTED);
             packList.addView(empty, matchWrap());
         }
     }
@@ -797,7 +825,7 @@ public class MainActivity extends Activity {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER);
         card.setPadding(dp(8), dp(8), dp(8), dp(6));
-        card.setBackgroundColor(Color.WHITE);
+        card.setBackground(roundRect(COLOR_CARD, COLOR_BORDER, 14));
         ImageView image = new ImageView(this);
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         File f = new File(folder(this), name);
@@ -807,10 +835,11 @@ public class MainActivity extends Activity {
         TextView label = new TextView(this);
         label.setText(name);
         label.setTextSize(11);
-        label.setTextColor(Color.rgb(71, 85, 105));
+        label.setTextColor(COLOR_MUTED);
         label.setGravity(Gravity.CENTER);
         card.addView(label, matchWrap());
         Button remove = makeButton(s(R.string.remove));
+        styleButton(remove, COLOR_PALE_CORAL, COLOR_NAVY);
         remove.setTextSize(12);
         remove.setOnClickListener(v -> {
             if (stickerNames().size() <= 3) {
@@ -1101,7 +1130,7 @@ public class MainActivity extends Activity {
     private TextView sectionTitle(String text) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextColor(Color.rgb(15, 23, 42));
+        view.setTextColor(COLOR_NAVY);
         view.setTextSize(18);
         view.setTypeface(null, android.graphics.Typeface.BOLD);
         view.setPadding(0, dp(12), 0, dp(4));
@@ -1112,10 +1141,26 @@ public class MainActivity extends Activity {
         Button button = new Button(this);
         button.setText(text);
         button.setAllCaps(false);
-        button.setTextColor(Color.WHITE);
+        button.setTextColor(COLOR_NAVY);
         button.setTextSize(15);
-        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.rgb(22, 102, 106)));
+        button.setTypeface(null, android.graphics.Typeface.BOLD);
+        button.setBackground(roundRect(COLOR_PALE_BLUE, COLOR_BLUE, 14));
+        button.setBackgroundTintList(null);
         return button;
+    }
+
+    private void styleButton(Button button, int fill, int textColor) {
+        button.setTextColor(textColor);
+        button.setBackground(roundRect(fill, Color.TRANSPARENT, 14));
+        button.setBackgroundTintList(null);
+    }
+
+    private android.graphics.drawable.Drawable roundRect(int fill, int stroke, int radiusDp) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(fill);
+        shape.setCornerRadius(dp(radiusDp));
+        if (stroke != Color.TRANSPARENT) shape.setStroke(dp(1), stroke);
+        return shape;
     }
 
     private LinearLayout.LayoutParams matchWrap() {

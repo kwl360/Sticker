@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">Pembuat Stiker WhatsApp dan Telegram</string>
+    <string name="app_name">KWL360 WATS</string><string name="app_title">Pembuat Stiker WhatsApp dan Telegram</string>
     <string name="intro">Tambahkan gambar atau impor ZIP, periksa stikernya, lalu tambahkan paket ke WhatsApp atau Telegram.</string>
     <string name="pack_data">1. Detail paket</string><string name="pack_name">Nama paket</string>
     <string name="pack_name_hint">Contoh: stiker Hamad</string><string name="publisher">Pembuat</string>

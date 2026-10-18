@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">WhatsApp और Telegram स्टिकर निर्माता</string>
+    <string name="app_name">KWL360 WATS</string><string name="app_title">WhatsApp और Telegram स्टिकर निर्माता</string>
     <string name="intro">तस्वीरें जोड़ें या ZIP आयात करें, स्टिकर देखें और पैक को WhatsApp या Telegram में जोड़ें।</string>
     <string name="pack_data">1. पैक का विवरण</string><string name="pack_name">पैक का नाम</string>
     <string name="pack_name_hint">उदाहरण: हमाद स्टिकर</string><string name="publisher">प्रकाशक</string>

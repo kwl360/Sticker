@@ -1,6 +1,6 @@
 plugins { id 'com.android.application' }
 android { namespace 'com.kwl360.wats'; compileSdk 36
- defaultConfig { applicationId 'com.kwl360.wats.telegram'; minSdk 24; targetSdk 36; versionCode 1; versionName '0.8.0' } }
+ defaultConfig { applicationId 'com.kwl360.wats.telegram'; minSdk 24; targetSdk 36; versionCode 2; versionName '0.8.1' } }
 dependencies {
  implementation 'com.aureusapps.android:webp-android:1.1.2'
 }

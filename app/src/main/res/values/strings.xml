@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string>
+    <string name="app_name">KWL360 WATS</string>
     <string name="app_title">WhatsApp and Telegram Sticker Maker</string>
     <string name="intro">Add images or import a ZIP, review the stickers, then add the pack to WhatsApp or Telegram.</string>
     <string name="pack_data">1. Pack details</string><string name="pack_name">Pack name</string>

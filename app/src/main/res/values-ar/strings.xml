@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">صانع ملصقات واتساب وتليجرام</string>
+    <string name="app_name">KWL360 WATS</string><string name="app_title">صانع ملصقات واتساب وتليجرام</string>
     <string name="intro">أضف صورك أو استورد ZIP، راجع الملصقات، ثم أضف الحزمة إلى واتساب أو تليجرام.</string>
     <string name="pack_data">١. بيانات الحزمة</string><string name="pack_name">اسم الحزمة</string>
     <string name="pack_name_hint">مثال: ملصقات حماد</string><string name="publisher">اسم الناشر</string>

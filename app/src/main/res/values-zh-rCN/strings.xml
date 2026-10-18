@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">WhatsApp 和 Telegram 贴纸制作器</string>
+    <string name="app_name">KWL360 WATS</string><string name="app_title">WhatsApp 和 Telegram 贴纸制作器</string>
     <string name="intro">添加图片或导入 ZIP，检查贴纸，然后将贴纸包添加到 WhatsApp 或 Telegram。</string>
     <string name="pack_data">1. 贴纸包信息</string><string name="pack_name">贴纸包名称</string>
     <string name="pack_name_hint">例如：Hamad 贴纸</string><string name="publisher">作者</string>
