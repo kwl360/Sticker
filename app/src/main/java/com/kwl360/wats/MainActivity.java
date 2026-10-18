@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Movie;
+import android.graphics.drawable.GradientDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
@@ -182,7 +183,7 @@ public class MainActivity extends Activity {
         LinearLayout packs = sectionCard();
         packs.addView(sectionTitle("٢. حزمك المستوردة"), matchWrap());
         TextView packsHint = new TextView(this);
-        packsHint.setText("استورد كل ZIP كحزمة مستقلة، ثم اختر الحزمة التي تريد إضافتها إلى واتساب.");
+        packsHint.setText("كل حزمة تستوردها تُحفظ هنا. اختر أي حزمة للتعديل أو الإضافة إلى واتساب؛ اختيار حزمة جديدة لا يحذف القديمة.");
         packsHint.setTextColor(Color.rgb(71, 85, 105));
         packsHint.setTextSize(13);
         packs.addView(packsHint, matchWrap());
@@ -629,23 +630,99 @@ public class MainActivity extends Activity {
         if (packList == null) return;
         packList.removeAllViews();
         List<String> ids = packIds(this);
+        Collections.sort(ids, (a, b) -> {
+            long timeA = importedPackTime(a);
+            long timeB = importedPackTime(b);
+            if (timeA != timeB) return Long.compare(timeB, timeA);
+            return a.compareTo(b);
+        });
         for (String id : ids) {
             SharedPreferences prefs = getSharedPreferences(packPrefsName(id), MODE_PRIVATE);
             String name = prefs.getString(KEY_PACK_NAME, "حزمة ملصقات");
-            int count = prefs.getStringSet(KEY_STICKERS, Collections.emptySet()).size();
-            Button choice = makeButton((id.equals(currentPackId) ? "✓  " : "") + name + "  •  " + count + " ملصق");
+            List<String> stickers = new ArrayList<>(prefs.getStringSet(KEY_STICKERS, Collections.emptySet()));
+            Collections.sort(stickers, Comparator.comparingInt(MainActivity::stickerNumber));
+            boolean selected = id.equals(currentPackId);
+            boolean animated = prefs.getBoolean(KEY_ANIMATED, false);
+
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.HORIZONTAL);
+            card.setGravity(Gravity.CENTER_VERTICAL);
+            card.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+            card.setPadding(dp(9), dp(8), dp(9), dp(8));
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(selected ? Color.rgb(232, 245, 244) : Color.WHITE);
+            background.setCornerRadius(dp(14));
+            background.setStroke(dp(selected ? 2 : 1), selected ? Color.rgb(22, 102, 106) : Color.rgb(226, 232, 240));
+            card.setBackground(background);
+            card.setOnClickListener(v -> selectPack(id));
+
+            ImageView preview = new ImageView(this);
+            preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            GradientDrawable previewBackground = new GradientDrawable();
+            previewBackground.setColor(Color.rgb(241, 245, 249));
+            previewBackground.setCornerRadius(dp(10));
+            preview.setBackground(previewBackground);
+            preview.setClipToOutline(true);
+            String previewName = stickers.isEmpty() ? "tray.png" : stickers.get(0);
+            BitmapFactory.Options thumbOptions = new BitmapFactory.Options();
+            thumbOptions.inSampleSize = 4;
+            Bitmap thumb = BitmapFactory.decodeFile(new File(folder(this, id), previewName).getAbsolutePath(), thumbOptions);
+            if (thumb == null && !"tray.png".equals(previewName)) {
+                thumb = BitmapFactory.decodeFile(new File(folder(this, id), "tray.png").getAbsolutePath(), thumbOptions);
+            }
+            if (thumb != null) preview.setImageBitmap(thumb);
+            LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(dp(58), dp(58));
+            previewParams.setMargins(0, 0, dp(9), 0);
+            card.addView(preview, previewParams);
+
+            LinearLayout info = new LinearLayout(this);
+            info.setOrientation(LinearLayout.VERTICAL);
+            info.setGravity(Gravity.CENTER_VERTICAL);
+            TextView packTitle = new TextView(this);
+            packTitle.setText(name);
+            packTitle.setTextColor(Color.rgb(15, 23, 42));
+            packTitle.setTextSize(15);
+            packTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            packTitle.setMaxLines(1);
+            packTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            info.addView(packTitle, matchWrap());
+            TextView packDetails = new TextView(this);
+            packDetails.setText(stickers.size() + " ملصقًا  •  " + (animated ? "متحركة" : "ثابتة")
+                    + (selected ? "  •  مفتوحة الآن" : ""));
+            packDetails.setTextColor(selected ? Color.rgb(22, 102, 106) : Color.rgb(100, 116, 139));
+            packDetails.setTextSize(12);
+            info.addView(packDetails, matchWrap());
+            card.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+            Button choice = makeButton(selected ? "مفتوحة" : "اختيار");
+            choice.setTextSize(12);
+            choice.setMinWidth(0);
+            choice.setPadding(dp(8), 0, dp(8), 0);
             choice.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
-                    id.equals(currentPackId) ? Color.rgb(15, 23, 42) : Color.rgb(22, 102, 106)));
+                    selected ? Color.rgb(15, 23, 42) : Color.rgb(22, 102, 106)));
             choice.setOnClickListener(v -> selectPack(id));
+            LinearLayout.LayoutParams choiceParams = new LinearLayout.LayoutParams(dp(82), dp(42));
+            choiceParams.setMargins(dp(8), 0, 0, 0);
+            card.addView(choice, choiceParams);
+
             LinearLayout.LayoutParams params = matchWrap();
-            params.topMargin = dp(4);
-            packList.addView(choice, params);
+            params.topMargin = dp(6);
+            packList.addView(card, params);
         }
         if (ids.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText("لا توجد حزم بعد. استورد ملف ZIP لتظهر هنا.");
             empty.setTextColor(Color.rgb(71, 85, 105));
             packList.addView(empty, matchWrap());
+        }
+    }
+
+    private static long importedPackTime(String id) {
+        if (id == null || !id.startsWith("kwl_")) return Long.MIN_VALUE;
+        try {
+            return Long.parseLong(id.substring(4));
+        } catch (NumberFormatException ignored) {
+            return Long.MIN_VALUE;
         }
     }
 
