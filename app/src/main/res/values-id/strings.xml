@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">Pembuat Stiker WhatsApp</string>
-    <string name="intro">Tambahkan gambar atau impor ZIP, tinjau stikernya, lalu kirim paket ke WhatsApp.</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">Pembuat Stiker WhatsApp dan Telegram</string>
+    <string name="intro">Tambahkan gambar atau impor ZIP, periksa stikernya, lalu tambahkan paket ke WhatsApp atau Telegram.</string>
     <string name="pack_data">1. Detail paket</string><string name="pack_name">Nama paket</string>
     <string name="pack_name_hint">Contoh: stiker Hamad</string><string name="publisher">Pembuat</string>
     <string name="publisher_hint">Contoh: KWL360</string><string name="imported_packs">2. Paket yang diimpor</string>
@@ -46,4 +46,10 @@
     <string name="default_pack_name">Paket stiker</string>
     <string name="sticker_access_animated">Stiker animasi</string>
     <string name="sticker_access_static">Stiker</string>
+
+    <string name="add_to_telegram">Tambahkan paket ke Telegram</string>
+    <string name="minimum_before_telegram">Tambahkan minimal 3 stiker sebelum mengimpor ke Telegram.</string>
+    <string name="telegram_static_only">Saat ini Telegram hanya mendukung impor stiker statis. Paket animasi harus dikonversi ke format yang didukung.</string>
+    <string name="telegram_opened">Lanjutkan impor paket di Telegram.</string>
+    <string name="telegram_unavailable">Tidak dapat membuka impor stiker Telegram. Pastikan Telegram terpasang dan diperbarui.</string>
 </resources>

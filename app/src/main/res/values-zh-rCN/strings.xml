@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">WhatsApp 贴纸制作器</string>
-    <string name="intro">添加图片或导入 ZIP，检查贴纸后发送贴纸包到 WhatsApp。</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">WhatsApp 和 Telegram 贴纸制作器</string>
+    <string name="intro">添加图片或导入 ZIP，检查贴纸，然后将贴纸包添加到 WhatsApp 或 Telegram。</string>
     <string name="pack_data">1. 贴纸包信息</string><string name="pack_name">贴纸包名称</string>
     <string name="pack_name_hint">例如：Hamad 贴纸</string><string name="publisher">作者</string>
     <string name="publisher_hint">例如：KWL360</string><string name="imported_packs">2. 已导入的贴纸包</string>
@@ -46,4 +46,10 @@
     <string name="default_pack_name">贴纸包</string>
     <string name="sticker_access_animated">动态贴纸</string>
     <string name="sticker_access_static">贴纸</string>
+
+    <string name="add_to_telegram">添加贴纸包到 Telegram</string>
+    <string name="minimum_before_telegram">导入 Telegram 前至少添加 3 张贴纸。</string>
+    <string name="telegram_static_only">Telegram 目前仅支持导入静态贴纸。动态贴纸包需转换为受支持的格式。</string>
+    <string name="telegram_opened">请在 Telegram 中继续导入贴纸包。</string>
+    <string name="telegram_unavailable">无法打开 Telegram 贴纸导入。请确认已安装并更新 Telegram。</string>
 </resources>

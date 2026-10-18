@@ -3,6 +3,7 @@ package com.kwl360.wats;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentProvider;
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Context;
@@ -255,6 +256,12 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams addParams = matchWrap();
         addParams.topMargin = dp(12);
         actions.addView(addButton, addParams);
+
+        Button telegramButton = makeButton(s(R.string.add_to_telegram));
+        telegramButton.setOnClickListener(v -> addPackToTelegram());
+        LinearLayout.LayoutParams telegramParams = matchWrap();
+        telegramParams.topMargin = dp(8);
+        actions.addView(telegramButton, telegramParams);
         root.addView(actions, cardParams());
 
         status = new TextView(this);
@@ -854,6 +861,44 @@ public class MainActivity extends Activity {
             startActivityForResult(intent, 22);
         } catch (Exception e) {
             status.setText(s(R.string.open_whatsapp_failed));
+        }
+    }
+
+    private void addPackToTelegram() {
+        List<String> names = stickerNames();
+        if (names.size() < 3) {
+            status.setText(s(R.string.minimum_before_telegram));
+            return;
+        }
+        if (getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, false)) {
+            status.setText(s(R.string.telegram_static_only));
+            return;
+        }
+
+        saveFields();
+        ArrayList<Uri> stickerUris = new ArrayList<>();
+        ArrayList<String> emojis = new ArrayList<>();
+        ClipData clipData = null;
+        for (String name : names) {
+            Uri uri = Uri.parse("content://" + AUTH + "/stickers_asset/" + currentPackId + "/" + name);
+            stickerUris.add(uri);
+            emojis.add("😊");
+            if (clipData == null) clipData = new ClipData("Telegram sticker pack", new String[]{"image/webp"}, new ClipData.Item(uri));
+            else clipData.addItem(new ClipData.Item(uri));
+        }
+
+        Intent intent = new Intent("org.telegram.messenger.CREATE_STICKER_PACK");
+        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, stickerUris);
+        intent.putStringArrayListExtra("STICKER_EMOJIS", emojis);
+        intent.putExtra("IMPORTER", getPackageName());
+        intent.setType("image/*");
+        intent.setClipData(clipData);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivityForResult(intent, 24);
+            status.setText(s(R.string.telegram_opened));
+        } catch (Exception e) {
+            status.setText(s(R.string.telegram_unavailable));
         }
     }
 

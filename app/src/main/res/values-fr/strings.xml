@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">Créateur d’autocollants WhatsApp</string>
-    <string name="intro">Ajoutez des images ou importez un ZIP, vérifiez les autocollants, puis envoyez le pack sur WhatsApp.</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">Créateur de stickers WhatsApp et Telegram</string>
+    <string name="intro">Ajoutez des images ou importez un ZIP, vérifiez les stickers, puis ajoutez le pack à WhatsApp ou Telegram.</string>
     <string name="pack_data">1. Détails du pack</string><string name="pack_name">Nom du pack</string>
     <string name="pack_name_hint">Exemple : autocollants Hamad</string><string name="publisher">Éditeur</string>
     <string name="publisher_hint">Exemple : KWL360</string><string name="imported_packs">2. Vos packs importés</string>
@@ -46,4 +46,10 @@
     <string name="default_pack_name">Pack d’autocollants</string>
     <string name="sticker_access_animated">Autocollant animé</string>
     <string name="sticker_access_static">Autocollant</string>
+
+    <string name="add_to_telegram">Ajouter le pack à Telegram</string>
+    <string name="minimum_before_telegram">Ajoutez au moins 3 stickers avant l’importation dans Telegram.</string>
+    <string name="telegram_static_only">L’importation Telegram prend actuellement en charge les stickers statiques. Les packs animés doivent être convertis dans un format compatible.</string>
+    <string name="telegram_opened">Terminez l’importation du pack dans Telegram.</string>
+    <string name="telegram_unavailable">Impossible d’ouvrir l’importation Telegram. Vérifiez que Telegram est installé et à jour.</string>
 </resources>

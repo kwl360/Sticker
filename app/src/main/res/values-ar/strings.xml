@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">صانع ملصقات واتساب</string>
-    <string name="intro">أضف صورك أو استورد ZIP، راجع الملصقات، ثم أرسل الحزمة إلى واتساب.</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">صانع ملصقات واتساب وتليجرام</string>
+    <string name="intro">أضف صورك أو استورد ZIP، راجع الملصقات، ثم أضف الحزمة إلى واتساب أو تليجرام.</string>
     <string name="pack_data">١. بيانات الحزمة</string><string name="pack_name">اسم الحزمة</string>
     <string name="pack_name_hint">مثال: ملصقات حماد</string><string name="publisher">اسم الناشر</string>
     <string name="publisher_hint">مثال: KWL360</string><string name="imported_packs">٢. حزمك المستوردة</string>
@@ -47,4 +47,10 @@
     <string name="default_pack_name">حزمة ملصقات</string>
     <string name="sticker_access_animated">ملصق متحرك</string>
     <string name="sticker_access_static">ملصق فلسطيني</string>
+
+    <string name="add_to_telegram">أضف الحزمة إلى تليجرام</string>
+    <string name="minimum_before_telegram">أضف ثلاثة ملصقات على الأقل قبل الاستيراد إلى تليجرام.</string>
+    <string name="telegram_static_only">استيراد تليجرام يدعم الملصقات الثابتة فقط حاليًا. الحزم المتحركة تحتاج إلى تحويل لصيغة يدعمها تليجرام.</string>
+    <string name="telegram_opened">أكمل استيراد الحزمة في تليجرام.</string>
+    <string name="telegram_unavailable">تعذّر فتح استيراد الملصقات في تليجرام. تأكد من تثبيت تليجرام وتحديثه.</string>
 </resources>

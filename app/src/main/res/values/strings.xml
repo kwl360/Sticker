@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string>
-    <string name="app_title">WhatsApp Sticker Maker</string>
-    <string name="intro">Add images or import a ZIP, review the stickers, then send the pack to WhatsApp.</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string>
+    <string name="app_title">WhatsApp and Telegram Sticker Maker</string>
+    <string name="intro">Add images or import a ZIP, review the stickers, then add the pack to WhatsApp or Telegram.</string>
     <string name="pack_data">1. Pack details</string><string name="pack_name">Pack name</string>
     <string name="pack_name_hint">Example: Hamad stickers</string><string name="publisher">Publisher</string>
     <string name="publisher_hint">Example: KWL360</string><string name="imported_packs">2. Your imported packs</string>
@@ -49,4 +49,10 @@
     <string name="default_pack_name">Sticker pack</string>
     <string name="sticker_access_animated">Animated sticker</string>
     <string name="sticker_access_static">Sticker</string>
+
+    <string name="add_to_telegram">Add pack to Telegram</string>
+    <string name="minimum_before_telegram">Add at least 3 stickers before importing to Telegram.</string>
+    <string name="telegram_static_only">Telegram import currently supports static stickers only. Animated packs must be converted to a Telegram-supported format.</string>
+    <string name="telegram_opened">Continue importing the pack in Telegram.</string>
+    <string name="telegram_unavailable">Could not open Telegram sticker import. Make sure Telegram is installed and up to date.</string>
 </resources>

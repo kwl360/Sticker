@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">KWL360 WATS 0.7.0</string><string name="app_title">WhatsApp स्टिकर निर्माता</string>
-    <string name="intro">तस्वीरें जोड़ें या ZIP आयात करें, स्टिकर देखें और फिर पैक WhatsApp पर भेजें।</string>
+    <string name="app_name">KWL360 WATS 0.8.0</string><string name="app_title">WhatsApp और Telegram स्टिकर निर्माता</string>
+    <string name="intro">तस्वीरें जोड़ें या ZIP आयात करें, स्टिकर देखें और पैक को WhatsApp या Telegram में जोड़ें।</string>
     <string name="pack_data">1. पैक का विवरण</string><string name="pack_name">पैक का नाम</string>
     <string name="pack_name_hint">उदाहरण: हमाद स्टिकर</string><string name="publisher">प्रकाशक</string>
     <string name="publisher_hint">उदाहरण: KWL360</string><string name="imported_packs">2. आपके आयात किए गए पैक</string>
@@ -46,4 +46,10 @@
     <string name="default_pack_name">स्टिकर पैक</string>
     <string name="sticker_access_animated">एनिमेटेड स्टिकर</string>
     <string name="sticker_access_static">स्टिकर</string>
+
+    <string name="add_to_telegram">पैक Telegram में जोड़ें</string>
+    <string name="minimum_before_telegram">Telegram में आयात करने से पहले कम से कम 3 स्टिकर जोड़ें।</string>
+    <string name="telegram_static_only">फ़िलहाल Telegram केवल स्थिर स्टिकर आयात करता है। एनिमेटेड पैक को समर्थित फ़ॉर्मेट में बदलना होगा।</string>
+    <string name="telegram_opened">Telegram में पैक का आयात पूरा करें।</string>
+    <string name="telegram_unavailable">Telegram स्टिकर आयात नहीं खुला। जाँचें कि Telegram इंस्टॉल और अपडेट है।</string>
 </resources>
