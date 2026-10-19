@@ -42,6 +42,7 @@
     <string name="convert_failed">Stiker tidak dapat dikonversi. Coba GIF atau video yang lebih singkat.</string>
     <string name="files_open_failed">Pemilih file tidak dapat dibuka.</string>
     <string name="open_whatsapp_failed">Aplikasi WhatsApp yang dipilih tidak dapat dibuka.</string>
+        <string name="static_convert_success">Gambar statis ditambahkan ke paket.</string>
     <string name="static_pack_only">Paket ini statis. Impor ZIP animasi sebelum menambahkan GIF atau video.</string>
     <string name="default_pack_name">Paket stiker</string>
     <string name="sticker_access_animated">Stiker animasi</string>

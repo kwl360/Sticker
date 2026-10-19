@@ -42,6 +42,7 @@
     <string name="convert_failed">Conversion impossible. Essayez un GIF ou une vidéo plus courte.</string>
     <string name="files_open_failed">Impossible d’ouvrir le sélecteur de fichiers.</string>
     <string name="open_whatsapp_failed">Impossible d’ouvrir l’application WhatsApp choisie.</string>
+        <string name="static_convert_success">Image fixe ajoutée au pack.</string>
     <string name="static_pack_only">Ce pack est fixe. Importez un ZIP animé avant d’ajouter un GIF ou une vidéo.</string>
     <string name="default_pack_name">Pack d’autocollants</string>
     <string name="sticker_access_animated">Autocollant animé</string>

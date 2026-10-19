@@ -45,6 +45,7 @@
     <string name="convert_failed">The sticker could not be converted. Try a shorter GIF or video.</string>
     <string name="files_open_failed">Could not open the file picker.</string>
     <string name="open_whatsapp_failed">Could not open the selected WhatsApp app.</string>
+        <string name="static_convert_success">Static image added to the pack.</string>
     <string name="static_pack_only">This pack is static. Import an animated ZIP before adding a GIF or video.</string>
     <string name="default_pack_name">Sticker pack</string>
     <string name="sticker_access_animated">Animated sticker</string>

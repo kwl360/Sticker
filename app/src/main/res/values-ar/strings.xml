@@ -43,6 +43,7 @@
     <string name="convert_failed">تعذّر تحويل الملصق. جرّب GIF أو فيديو أقصر.</string>
     <string name="files_open_failed">تعذّر فتح مستعرض الملفات.</string>
     <string name="open_whatsapp_failed">تعذّر فتح تطبيق واتساب المختار.</string>
+        <string name="static_convert_success">تمت إضافة الصورة الثابتة إلى الحزمة.</string>
     <string name="static_pack_only">هذه الحزمة ثابتة. استورد ZIP متحركًا قبل إضافة GIF أو فيديو.</string>
     <string name="default_pack_name">حزمة ملصقات</string>
     <string name="sticker_access_animated">ملصق متحرك</string>

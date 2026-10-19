@@ -80,6 +80,7 @@ public class MainActivity extends Activity {
     private static final int CANVAS_SIZE = 512;
     private static final int MAX_STICKERS = 30;
     private static final long MAX_ANIMATED_BYTES = 500L * 1024L;
+    private static final long MAX_STATIC_BYTES = 100L * 1024L;
     private static final long MAX_REMOTE_ZIP_BYTES = 20L * 1024L * 1024L;
     private static final String SITE_HOST = "kwl360.com";
 
@@ -675,8 +676,13 @@ public class MainActivity extends Activity {
         String mime = getContentResolver().getType(uri);
         final String mediaMime = mime == null ? "" : mime;
         String displayName = queryDisplayName(uri);
-        final String selectedName = displayName;
-        if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || selectedName.toLowerCase().endsWith(".gif"))) {
+        final String selectedName = displayName == null ? "" : displayName;
+        String lowerName = selectedName.toLowerCase(Locale.ROOT);
+        boolean knownImageExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")
+                || lowerName.endsWith(".png") || lowerName.endsWith(".webp") || lowerName.endsWith(".gif");
+        boolean knownVideoExtension = lowerName.endsWith(".mp4") || lowerName.endsWith(".3gp")
+                || lowerName.endsWith(".webm") || lowerName.endsWith(".mkv") || lowerName.endsWith(".mov");
+        if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || knownImageExtension || knownVideoExtension)) {
             status.setText(s(R.string.choose_media_status));
             return;
         }
@@ -684,10 +690,15 @@ public class MainActivity extends Activity {
             status.setText(s(R.string.pack_full));
             return;
         }
-        if (!stickerNames().isEmpty() && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
+        boolean staticPack = !stickerNames().isEmpty()
+                && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true);
+        boolean videoInput = mediaMime.startsWith("video/") || knownVideoExtension;
+        boolean gifInput = mediaMime.equalsIgnoreCase("image/gif") || lowerName.endsWith(".gif");
+        if (staticPack && (videoInput || gifInput)) {
             status.setText(s(R.string.static_pack_only));
             return;
         }
+        final boolean addAsStatic = staticPack;
         busy = true;
         status.setText(s(R.string.convert_media));
         addButton.setEnabled(false);
@@ -695,16 +706,34 @@ public class MainActivity extends Activity {
             String error = null;
             try {
                 File out = nextStickerFile();
-                List<Bitmap> frames = decodeFrames(uri, mediaMime, selectedName);
-                try {
-                    encodeAnimatedWebp(frames, out);
-                } finally {
-                    recycleFrames(frames);
+                if (addAsStatic) {
+                    Bitmap source;
+                    try (InputStream in = getContentResolver().openInputStream(uri)) {
+                        if (in == null) throw new IOException("تعذّر قراءة الملف.");
+                        source = BitmapFactory.decodeStream(in);
+                    }
+                    if (source == null) throw new IOException("صيغة الصورة غير مدعومة. اختر JPG أو PNG أو WebP.");
+                    Bitmap canvas = Bitmap.createBitmap(CANVAS_SIZE, CANVAS_SIZE, Bitmap.Config.ARGB_8888);
+                    drawContained(new Canvas(canvas), source, 1f);
+                    source.recycle();
+                    try {
+                        encodeStaticWebp(canvas, out);
+                    } finally {
+                        canvas.recycle();
+                    }
+                } else {
+                    List<Bitmap> frames = decodeFrames(uri, mediaMime, selectedName);
+                    try {
+                        encodeAnimatedWebp(frames, out);
+                    } finally {
+                        recycleFrames(frames);
+                    }
                 }
                 if (!out.isFile() || out.length() == 0) throw new IOException("لم ينتج ملف الملصق.");
-                if (out.length() > MAX_ANIMATED_BYTES) {
+                long maxBytes = addAsStatic ? MAX_STATIC_BYTES : MAX_ANIMATED_BYTES;
+                if (out.length() > maxBytes) {
                     out.delete();
-                    throw new IOException("حجم الملصق تجاوز 500 كيلوبايت. اختر GIF أقصر أو أقل دقة.");
+                    throw new IOException(addAsStatic ? "حجم الصورة الثابتة تجاوز 100 كيلوبايت." : "حجم الملصق تجاوز 500 كيلوبايت. اختر GIF أقصر أو أقل دقة.");
                 }
                 addStickerName(out.getName());
             } catch (Exception e) {
@@ -715,7 +744,7 @@ public class MainActivity extends Activity {
                 busy = false;
                 addButton.setEnabled(true);
                 if (message == null) {
-                    status.setText(s(R.string.convert_success));
+                    status.setText(addAsStatic ? s(R.string.static_convert_success) : s(R.string.convert_success));
                     refreshStickers();
                 } else {
                     status.setText(isRtlLanguage() ? "لم يكتمل التحويل: " + message : s(R.string.convert_failed));
@@ -725,7 +754,7 @@ public class MainActivity extends Activity {
     }
 
     private List<Bitmap> decodeFrames(Uri uri, String mime, String displayName) throws Exception {
-        if (mime.startsWith("video/")) return decodeVideo(uri);
+        if (mime.startsWith("video/") || displayName.toLowerCase(Locale.ROOT).matches(".*\\.(mp4|3gp|webm|mkv|mov)$")) return decodeVideo(uri);
         if (mime.equalsIgnoreCase("image/gif") || displayName.toLowerCase().endsWith(".gif")) {
             List<Bitmap> gif = decodeGif(uri);
             if (gif != null && !gif.isEmpty()) return gif;
@@ -831,6 +860,25 @@ public class MainActivity extends Activity {
         } finally {
             encoder.release();
         }
+    }
+
+
+    private void encodeStaticWebp(Bitmap bitmap, File destination) throws IOException {
+        Bitmap.CompressFormat format = Build.VERSION.SDK_INT >= 30
+                ? Bitmap.CompressFormat.WEBP_LOSSY : Bitmap.CompressFormat.WEBP;
+        int[] qualities = {88, 80, 72, 64, 56};
+        for (int quality : qualities) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            if (!bitmap.compress(format, quality, bytes)) throw new IOException("تعذّر ضغط الصورة إلى WebP.");
+            if (bytes.size() <= MAX_STATIC_BYTES) {
+                try (FileOutputStream output = new FileOutputStream(destination)) {
+                    bytes.writeTo(output);
+                    output.getFD().sync();
+                }
+                return;
+            }
+        }
+        throw new IOException("تعذّر ضغط الصورة الثابتة إلى أقل من 100 كيلوبايت.");
     }
 
     private void refreshStickers() {

@@ -42,6 +42,7 @@
     <string name="convert_failed">No se pudo convertir. Prueba con un GIF o vídeo más corto.</string>
     <string name="files_open_failed">No se pudo abrir el selector de archivos.</string>
     <string name="open_whatsapp_failed">No se pudo abrir la aplicación de WhatsApp elegida.</string>
+        <string name="static_convert_success">Imagen fija añadida al paquete.</string>
     <string name="static_pack_only">Este paquete es estático. Importa un ZIP animado antes de añadir un GIF o vídeo.</string>
     <string name="default_pack_name">Paquete de stickers</string>
     <string name="sticker_access_animated">Sticker animado</string>
