@@ -49,6 +49,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.ArrayList;
@@ -77,6 +80,9 @@ public class MainActivity extends Activity {
     private static final int CANVAS_SIZE = 512;
     private static final int MAX_STICKERS = 30;
     private static final long MAX_ANIMATED_BYTES = 500L * 1024L;
+    private static final long MAX_STATIC_BYTES = 100L * 1024L;
+    private static final long MAX_REMOTE_ZIP_BYTES = 20L * 1024L * 1024L;
+    private static final String SITE_HOST = "kwl360.com";
 
     private static final int COLOR_NAVY = Color.rgb(24, 54, 91);
     private static final int COLOR_BLUE = Color.rgb(35, 153, 207);
@@ -151,6 +157,14 @@ public class MainActivity extends Activity {
         loadFields();
         refreshPacks();
         refreshStickers();
+        handlePackLink(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handlePackLink(intent);
     }
 
     @Override
@@ -357,6 +371,128 @@ public class MainActivity extends Activity {
         return label;
     }
 
+    private void handlePackLink(Intent intent) {
+        if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+        Uri link = intent.getData();
+        if (link == null || !"https".equalsIgnoreCase(link.getScheme())
+                || !SITE_HOST.equalsIgnoreCase(link.getHost())) return;
+        List<String> parts = link.getPathSegments();
+        if (parts.size() != 2 || !"open-pack".equals(parts.get(0))
+                || !parts.get(1).matches("[0-9]{1,10}") || busy) return;
+        fetchPackFromSite(parts.get(1));
+    }
+
+    private void fetchPackFromSite(String packId) {
+        busy = true;
+        status.setText(s(R.string.importing_zip));
+        addButton.setEnabled(false);
+        worker.execute(() -> {
+            File downloaded = null;
+            String packTitle = "حزمة KWL360";
+            String packPublisher = "KWL360";
+            String error = null;
+            try {
+                JSONObject metadata = new JSONObject(readHttpsText(
+                        "https://" + SITE_HOST + "/wp-json/kwl360-wats/v1/packs/" + packId, 128 * 1024));
+                packTitle = cleanField(metadata.optString("name", packTitle), packTitle);
+                packPublisher = cleanField(metadata.optString("publisher", packPublisher), packPublisher);
+                String downloadUrl = metadata.optString("download_url", "");
+                Uri remote = Uri.parse(downloadUrl);
+                if (!"https".equalsIgnoreCase(remote.getScheme())
+                        || !SITE_HOST.equalsIgnoreCase(remote.getHost())) {
+                    throw new IOException("رابط الحزمة غير صالح.");
+                }
+                downloaded = File.createTempFile("kwl360-pack-", ".zip", getCacheDir());
+                downloadHttpsFile(downloadUrl, downloaded);
+            } catch (Exception e) {
+                error = e.getMessage() == null ? "تعذّر تنزيل الحزمة من الموقع." : e.getMessage();
+                if (downloaded != null) downloaded.delete();
+            }
+            final File readyZip = downloaded;
+            final String finalTitle = packTitle;
+            final String finalPublisher = packPublisher;
+            final String finalError = error;
+            runOnUiThread(() -> {
+                busy = false;
+                addButton.setEnabled(true);
+                if (finalError != null || readyZip == null || !readyZip.isFile()) {
+                    status.setText(isRtlLanguage() && finalError != null
+                            ? getString(R.string.import_failed, finalError) : s(R.string.import_invalid));
+                    return;
+                }
+                importZip(Uri.fromFile(readyZip), finalTitle, finalPublisher);
+            });
+        });
+    }
+
+    private String readHttpsText(String address, int limit) throws IOException {
+        HttpURLConnection connection = openSiteConnection(address);
+        try {
+            int code = connection.getResponseCode();
+            if (code < 200 || code >= 300) throw new IOException("تعذّر الوصول إلى بيانات الحزمة.");
+            try (InputStream input = connection.getInputStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int count;
+                while ((count = input.read(buffer)) != -1) {
+                    if (output.size() + count > limit) throw new IOException("بيانات الحزمة أكبر من المسموح.");
+                    output.write(buffer, 0, count);
+                }
+                return output.toString("UTF-8");
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private void downloadHttpsFile(String address, File target) throws IOException {
+        HttpURLConnection connection = openSiteConnection(address);
+        try {
+            int code = connection.getResponseCode();
+            if (code < 200 || code >= 300) throw new IOException("تعذّر تنزيل ملف الحزمة.");
+            long declared = connection.getContentLengthLong();
+            if (declared > MAX_REMOTE_ZIP_BYTES) throw new IOException("ملف الحزمة أكبر من 20 ميغابايت.");
+            try (InputStream input = connection.getInputStream(); FileOutputStream output = new FileOutputStream(target)) {
+                byte[] buffer = new byte[8192];
+                long total = 0;
+                int count;
+                while ((count = input.read(buffer)) != -1) {
+                    total += count;
+                    if (total > MAX_REMOTE_ZIP_BYTES) throw new IOException("ملف الحزمة أكبر من 20 ميغابايت.");
+                    output.write(buffer, 0, count);
+                }
+                output.getFD().sync();
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private HttpURLConnection openSiteConnection(String address) throws IOException {
+        URL url = new URL(address);
+        for (int redirect = 0; redirect <= 3; redirect++) {
+            if (!"https".equalsIgnoreCase(url.getProtocol()) || !SITE_HOST.equalsIgnoreCase(url.getHost())) {
+                throw new IOException("رابط الموقع غير آمن.");
+            }
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestProperty("User-Agent", "KWL360-WATS/0.8.2");
+            int code = connection.getResponseCode();
+            if (code == HttpURLConnection.HTTP_MOVED_PERM || code == HttpURLConnection.HTTP_MOVED_TEMP
+                    || code == HttpURLConnection.HTTP_SEE_OTHER || code == 307 || code == 308) {
+                String location = connection.getHeaderField("Location");
+                connection.disconnect();
+                if (location == null || location.trim().isEmpty()) throw new IOException("رابط تحويل غير صالح.");
+                url = new URL(url, location);
+                continue;
+            }
+            return connection;
+        }
+        throw new IOException("تجاوز الموقع عدد التحويلات المسموح.");
+    }
+
+
     private void chooseZip() {
         if (busy) return;
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -373,14 +509,21 @@ public class MainActivity extends Activity {
     }
 
     private void importZip(Uri uri) {
+        importZip(uri, null, null);
+    }
+
+    private void importZip(Uri uri, String requestedName, String requestedPublisher) {
         if (busy) return;
         busy = true;
         status.setText(s(R.string.importing_zip));
         addButton.setEnabled(false);
         final String importedPackId = "kwl_" + System.currentTimeMillis();
         String archiveName = queryDisplayName(uri);
-        final String importedPackName = cleanField(archiveName.replaceFirst("(?i)\\.zip$", ""), "حزمة جديدة");
-        final String importedPublisher = "KWL360";
+        if (archiveName == null || archiveName.trim().isEmpty()) archiveName = "حزمة جديدة.zip";
+        final String importedPackName = cleanField(requestedName == null || requestedName.trim().isEmpty()
+                ? archiveName.replaceFirst("(?i)\\.zip$", "") : requestedName, "حزمة جديدة");
+        final String importedPublisher = cleanField(requestedPublisher == null || requestedPublisher.trim().isEmpty()
+                ? "KWL360" : requestedPublisher, "KWL360");
         worker.execute(() -> {
             List<String> imported = new ArrayList<>();
             String error = null;
@@ -440,6 +583,10 @@ public class MainActivity extends Activity {
                 error = e.getMessage() == null ? "ملف ZIP غير صالح أو لا يحتوي صور WebP." : e.getMessage();
                 if (packDir.exists()) deleteTree(packDir);
                 unregisterPack(this, importedPackId);
+            } finally {
+                if ("file".equalsIgnoreCase(uri.getScheme()) && uri.getPath() != null) {
+                    new File(uri.getPath()).delete();
+                }
             }
             final String message = error;
             final int count = imported.size();
@@ -529,8 +676,13 @@ public class MainActivity extends Activity {
         String mime = getContentResolver().getType(uri);
         final String mediaMime = mime == null ? "" : mime;
         String displayName = queryDisplayName(uri);
-        final String selectedName = displayName;
-        if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || selectedName.toLowerCase().endsWith(".gif"))) {
+        final String selectedName = displayName == null ? "" : displayName;
+        String lowerName = selectedName.toLowerCase(Locale.ROOT);
+        boolean knownImageExtension = lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")
+                || lowerName.endsWith(".png") || lowerName.endsWith(".webp") || lowerName.endsWith(".gif");
+        boolean knownVideoExtension = lowerName.endsWith(".mp4") || lowerName.endsWith(".3gp")
+                || lowerName.endsWith(".webm") || lowerName.endsWith(".mkv") || lowerName.endsWith(".mov");
+        if (!(mediaMime.startsWith("image/") || mediaMime.startsWith("video/") || knownImageExtension || knownVideoExtension)) {
             status.setText(s(R.string.choose_media_status));
             return;
         }
@@ -538,10 +690,15 @@ public class MainActivity extends Activity {
             status.setText(s(R.string.pack_full));
             return;
         }
-        if (!stickerNames().isEmpty() && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true)) {
+        boolean staticPack = !stickerNames().isEmpty()
+                && !getSharedPreferences(packPrefsName(currentPackId), MODE_PRIVATE).getBoolean(KEY_ANIMATED, true);
+        boolean videoInput = mediaMime.startsWith("video/") || knownVideoExtension;
+        boolean gifInput = mediaMime.equalsIgnoreCase("image/gif") || lowerName.endsWith(".gif");
+        if (staticPack && (videoInput || gifInput)) {
             status.setText(s(R.string.static_pack_only));
             return;
         }
+        final boolean addAsStatic = staticPack;
         busy = true;
         status.setText(s(R.string.convert_media));
         addButton.setEnabled(false);
@@ -549,16 +706,34 @@ public class MainActivity extends Activity {
             String error = null;
             try {
                 File out = nextStickerFile();
-                List<Bitmap> frames = decodeFrames(uri, mediaMime, selectedName);
-                try {
-                    encodeAnimatedWebp(frames, out);
-                } finally {
-                    recycleFrames(frames);
+                if (addAsStatic) {
+                    Bitmap source;
+                    try (InputStream in = getContentResolver().openInputStream(uri)) {
+                        if (in == null) throw new IOException("تعذّر قراءة الملف.");
+                        source = BitmapFactory.decodeStream(in);
+                    }
+                    if (source == null) throw new IOException("صيغة الصورة غير مدعومة. اختر JPG أو PNG أو WebP.");
+                    Bitmap canvas = Bitmap.createBitmap(CANVAS_SIZE, CANVAS_SIZE, Bitmap.Config.ARGB_8888);
+                    drawContained(new Canvas(canvas), source, 1f);
+                    source.recycle();
+                    try {
+                        encodeStaticWebp(canvas, out);
+                    } finally {
+                        canvas.recycle();
+                    }
+                } else {
+                    List<Bitmap> frames = decodeFrames(uri, mediaMime, selectedName);
+                    try {
+                        encodeAnimatedWebp(frames, out);
+                    } finally {
+                        recycleFrames(frames);
+                    }
                 }
                 if (!out.isFile() || out.length() == 0) throw new IOException("لم ينتج ملف الملصق.");
-                if (out.length() > MAX_ANIMATED_BYTES) {
+                long maxBytes = addAsStatic ? MAX_STATIC_BYTES : MAX_ANIMATED_BYTES;
+                if (out.length() > maxBytes) {
                     out.delete();
-                    throw new IOException("حجم الملصق تجاوز 500 كيلوبايت. اختر GIF أقصر أو أقل دقة.");
+                    throw new IOException(addAsStatic ? "حجم الصورة الثابتة تجاوز 100 كيلوبايت." : "حجم الملصق تجاوز 500 كيلوبايت. اختر GIF أقصر أو أقل دقة.");
                 }
                 addStickerName(out.getName());
             } catch (Exception e) {
@@ -569,7 +744,7 @@ public class MainActivity extends Activity {
                 busy = false;
                 addButton.setEnabled(true);
                 if (message == null) {
-                    status.setText(s(R.string.convert_success));
+                    status.setText(addAsStatic ? s(R.string.static_convert_success) : s(R.string.convert_success));
                     refreshStickers();
                 } else {
                     status.setText(isRtlLanguage() ? "لم يكتمل التحويل: " + message : s(R.string.convert_failed));
@@ -579,7 +754,7 @@ public class MainActivity extends Activity {
     }
 
     private List<Bitmap> decodeFrames(Uri uri, String mime, String displayName) throws Exception {
-        if (mime.startsWith("video/")) return decodeVideo(uri);
+        if (mime.startsWith("video/") || displayName.toLowerCase(Locale.ROOT).matches(".*\\.(mp4|3gp|webm|mkv|mov)$")) return decodeVideo(uri);
         if (mime.equalsIgnoreCase("image/gif") || displayName.toLowerCase().endsWith(".gif")) {
             List<Bitmap> gif = decodeGif(uri);
             if (gif != null && !gif.isEmpty()) return gif;
@@ -685,6 +860,25 @@ public class MainActivity extends Activity {
         } finally {
             encoder.release();
         }
+    }
+
+
+    private void encodeStaticWebp(Bitmap bitmap, File destination) throws IOException {
+        Bitmap.CompressFormat format = Build.VERSION.SDK_INT >= 30
+                ? Bitmap.CompressFormat.WEBP_LOSSY : Bitmap.CompressFormat.WEBP;
+        int[] qualities = {88, 80, 72, 64, 56};
+        for (int quality : qualities) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            if (!bitmap.compress(format, quality, bytes)) throw new IOException("تعذّر ضغط الصورة إلى WebP.");
+            if (bytes.size() <= MAX_STATIC_BYTES) {
+                try (FileOutputStream output = new FileOutputStream(destination)) {
+                    bytes.writeTo(output);
+                    output.getFD().sync();
+                }
+                return;
+            }
+        }
+        throw new IOException("تعذّر ضغط الصورة الثابتة إلى أقل من 100 كيلوبايت.");
     }
 
     private void refreshStickers() {

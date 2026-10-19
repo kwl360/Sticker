@@ -42,6 +42,7 @@
     <string name="convert_failed">स्टिकर कन्वर्ट नहीं हो सका। छोटा GIF या वीडियो आज़माएँ।</string>
     <string name="files_open_failed">फ़ाइल चयनकर्ता नहीं खुल सका।</string>
     <string name="open_whatsapp_failed">चुना गया WhatsApp ऐप नहीं खुल सका।</string>
+        <string name="static_convert_success">स्थिर छवि पैक में जोड़ दी गई।</string>
     <string name="static_pack_only">यह पैक स्थिर है। GIF या वीडियो जोड़ने से पहले एनिमेटेड ZIP आयात करें।</string>
     <string name="default_pack_name">स्टिकर पैक</string>
     <string name="sticker_access_animated">एनिमेटेड स्टिकर</string>

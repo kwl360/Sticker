@@ -42,6 +42,7 @@
     <string name="convert_failed">贴纸转换失败。请尝试较短的 GIF 或视频。</string>
     <string name="files_open_failed">无法打开文件选择器。</string>
     <string name="open_whatsapp_failed">无法打开所选的 WhatsApp 应用。</string>
+        <string name="static_convert_success">静态图片已添加到贴纸包。</string>
     <string name="static_pack_only">此贴纸包为静态。添加 GIF 或视频前请先导入动态 ZIP。</string>
     <string name="default_pack_name">贴纸包</string>
     <string name="sticker_access_animated">动态贴纸</string>
